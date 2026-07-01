@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Local environment layout
+bin/
+include/
+lib/
+pyvenv.cfg
+
+# Local data/artifacts
+chroma_db/
+.DS_Store
+

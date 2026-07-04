@@ -16,6 +16,7 @@ ENV/
 env/
 
 # Local environment layout
+.env
 bin/
 include/
 lib/
@@ -24,4 +25,3 @@ pyvenv.cfg
 # Local data/artifacts
 chroma_db/
 .DS_Store
-

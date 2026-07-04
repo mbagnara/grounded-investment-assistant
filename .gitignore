@@ -24,4 +24,6 @@ pyvenv.cfg
 
 # Local data/artifacts
 chroma_db/
+.deepeval/
+**/.deepeval/
 .DS_Store

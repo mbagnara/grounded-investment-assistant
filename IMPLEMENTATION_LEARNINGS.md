@@ -173,3 +173,149 @@ La siguiente mejora con mayor probabilidad de elevar Answer Correctness es imple
 4. Contextos fijos para comparar prompts.
 
 Después de aplicar estos cambios se debe repetir el benchmark y comprobar si aumenta Answer Correctness sin reducir Faithfulness.
+
+## Revisión 5 — Calibración de pesos y umbrales
+
+### Los pesos y los umbrales resuelven problemas diferentes
+
+**Aprendizaje:** un peso expresa cuánto influye una métrica en el ranking entre candidatos; un umbral expresa el mínimo que el sistema debe cumplir. Una métrica crítica no debe protegerse solamente con un peso alto, porque un resultado deficiente podría quedar oculto por mejoras en otras métricas. Correctness y Faithfulness deben funcionar también como puertas de aprobación independientes.
+
+**Ejemplo:** supóngase que se utilizan estos pesos:
+
+```python
+weights = {
+    "Answer Correctness": 0.35,
+    "Faithfulness / Groundedness": 0.25,
+    "Context Relevance": 0.15,
+    "Answer Relevance": 0.10,
+    "Broker Actionability": 0.15,
+}
+```
+
+Con los resultados observados, la puntuación ponderada es:
+
+```text
+Baseline:   0.6396
+Optimizado: 0.6265
+```
+
+El peso permite comparar ambos candidatos. Un umbral, en cambio, puede expresar una condición obligatoria:
+
+```python
+minimum_correctness = 0.50
+passes_correctness_gate = answer_correctness >= minimum_correctness
+```
+
+El baseline, con `0.5223`, supera provisionalmente esa puerta. El optimizado, con `0.4331`, no la supera. Aunque el optimizado sea mejor en Actionability, esa mejora no debe compensar automáticamente una corrección insuficiente.
+
+### Calibrar contra decisiones humanas
+
+**Aprendizaje:** no existen pesos ni umbrales universales de DeepEval. Deben calibrarse con un conjunto representativo de respuestas revisadas por especialistas, quienes asignan puntuaciones por criterio y una decisión final de aceptar, corregir o rechazar. Los pesos pueden elegirse inicialmente según costo de fallo y después ajustarse para que la puntuación compuesta reproduzca esas decisiones humanas en un conjunto de validación.
+
+**Ejemplo:** dos analistas revisan 100 respuestas sin conocer el score de DeepEval y registran:
+
+| Caso | Correctness | Faithfulness | Decisión humana | Motivo |
+|---|---:|---:|---|---|
+| A | 0.88 | 0.91 | Aceptar | Respuesta correcta y respaldada |
+| B | 0.62 | 0.90 | Corregir | Omite una parte de la comparación |
+| C | 0.55 | 0.48 | Rechazar | Contiene una afirmación no respaldada |
+
+Si los especialistas rechazan de manera consistente los casos con Faithfulness menor que `0.70`, esa observación proporciona evidencia para establecer una puerta cercana a ese valor. Si Actionability apenas cambia sus decisiones, su peso debería ser menor que el de Correctness o Faithfulness.
+
+El registro mínimo para calibración podría tener esta estructura:
+
+```python
+human_labels = pd.DataFrame({
+    "case_id": ["A", "B", "C"],
+    "human_decision": ["accept", "revise", "reject"],
+    "severity": ["none", "medium", "critical"],
+})
+```
+
+### Elegir umbrales mediante riesgo observado
+
+**Aprendizaje:** el umbral de cada métrica debe seleccionarse buscando una tasa de errores compatible con el uso previsto. En una aplicación financiera se prioriza minimizar respuestas aceptadas que contienen hechos incorrectos o no respaldados. La selección puede apoyarse en curvas precision-recall o ROC, pero debe confirmarse en un test separado y mediante análisis de errores severos.
+
+**Ejemplo ilustrativo:** después de comparar los scores con las decisiones humanas, se prueban tres umbrales de Correctness:
+
+| Umbral | Respuestas aprobadas | Aprobadas incorrectamente | Tasa de aprobación incorrecta |
+|---:|---:|---:|---:|
+| 0.50 | 80 | 12 | 15.0% |
+| 0.60 | 65 | 4 | 6.2% |
+| 0.70 | 45 | 1 | 2.2% |
+
+Si la política del producto exige menos de 5% de respuestas incorrectas entre las aprobadas, `0.70` sería el primer candidato aceptable de esta tabla. Estos números son únicamente demostrativos; los valores reales deben calcularse con respuestas etiquetadas del proyecto.
+
+```python
+accepted = evaluation_df["correctness"] >= threshold
+false_accepts = accepted & (evaluation_df["human_decision"] == "reject")
+
+false_accept_rate = (
+    false_accepts.sum() / accepted.sum()
+    if accepted.sum() else 0
+)
+```
+
+### Usar una política provisional cuando todavía hay pocos datos
+
+**Hallazgo:** el benchmark actual contiene solamente 20 preguntas, una muestra demasiado pequeña para estimar umbrales estables.
+
+**Aprendizaje:** mientras se amplía y etiqueta el benchmark, conviene usar reglas provisionales de no regresión: superar el baseline por un margen mínimo en la puntuación ponderada, no reducir el success rate y no caer más que una tolerancia pequeña en ninguna métrica crítica. Estas reglas son criterios temporales de selección, no objetivos definitivos de producción.
+
+**Ejemplo aplicado al proyecto:** se define temporalmente que un nuevo prompt debe mejorar al menos `0.01` en la puntuación ponderada, mantener el success rate y no perder más de `0.02` en Correctness o Faithfulness.
+
+```python
+approved = all([
+    candidate_weighted >= baseline_weighted + 0.01,
+    candidate_success_rate >= baseline_success_rate,
+    candidate_correctness >= baseline_correctness - 0.02,
+    candidate_faithfulness >= baseline_faithfulness - 0.02,
+])
+```
+
+Para la ejecución observada:
+
+```text
+Puntuación ponderada: 0.6396 → 0.6265   Falla
+Success rate:         0.72   → 0.72     Cumple
+Correctness:          0.5223 → 0.4331   Falla
+Faithfulness:         0.7263 → 0.7584   Cumple
+Resultado provisional: RECHAZAR
+```
+
+La tolerancia `0.02` y el margen `0.01` son reglas operativas iniciales. Deben reemplazarse cuando haya suficientes repeticiones para estimar el ruido del evaluador y suficientes etiquetas humanas para medir el riesgo real.
+
+### Evaluar distribución, no solamente promedio
+
+**Aprendizaje:** además del promedio, deben medirse el porcentaje de casos que supera cada umbral, el peor decil, los intervalos de confianza y la cantidad de fallos críticos. Un promedio aceptable no compensa una alucinación financiera severa.
+
+**Ejemplo:** dos sistemas pueden tener el mismo promedio de Correctness:
+
+```text
+Sistema A: [0.80, 0.80, 0.80, 0.80, 0.80] → promedio 0.80
+Sistema B: [0.40, 0.90, 0.90, 0.90, 0.90] → promedio 0.80
+```
+
+El Sistema B contiene un fallo mucho más grave, aunque el promedio sea idéntico. Por eso deben calcularse indicadores adicionales:
+
+```python
+scores = evaluation_df["correctness"]
+
+summary = {
+    "mean": scores.mean(),
+    "minimum": scores.min(),
+    "p10": scores.quantile(0.10),
+    "pass_rate": (scores >= 0.70).mean(),
+    "critical_failures": (scores < 0.50).sum(),
+}
+```
+
+Una regla de aprobación más completa podría exigir simultáneamente:
+
+```text
+Promedio ponderado ≥ objetivo
+Correctness pass rate ≥ 90%
+Faithfulness pass rate ≥ 95%
+Fallos críticos = 0
+Límite inferior del intervalo de confianza ≥ mínimo aceptable
+```

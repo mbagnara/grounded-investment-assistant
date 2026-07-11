@@ -396,3 +396,84 @@ Una abstención explícita puede ser el comportamiento correcto cuando el corpus
 8. Experimentar después con `chunk_size`, `chunk_overlap` y `k`.
 
 **Conclusión:** las imperfecciones del corpus forman parte útil del experimento. El objetivo no es ocultarlas, sino demostrar que un pipeline RAG debe conocer los límites de sus fuentes, recuperar con una estrategia apropiada y abstenerse cuando la evidencia no está disponible.
+
+## Revisión 7 — Resultados de la evaluación holdout de la versión 2
+
+### La comparación controlada produjo una aprobación provisional
+
+**Evidencia:** la versión 2 separó los ejemplos utilizados por GEPA de ocho casos holdout y reutilizó exactamente los mismos contextos para el baseline y el prompt optimizado. Sobre 40 evaluaciones —ocho preguntas por cinco métricas— el promedio global aumentó de `0.6991` a `0.7226` y el success rate de `0.725` a `0.775`, sin errores de ejecución.
+
+El score ponderado también aumentó:
+
+```text
+Baseline:   0.6836
+Optimizado: 0.7023
+Diferencia: +0.0187
+```
+
+**Aprendizaje:** congelar los contextos y usar un holdout permite atribuir las diferencias principalmente al prompt, en lugar de confundirlas con cambios de retrieval o reutilización de los ejemplos de optimización. Bajo la política provisional definida, los cinco quality gates se cumplieron y el resultado fue `APPROVE`.
+
+Esta aprobación significa que el prompt es el mejor candidato dentro del experimento actual; no demuestra todavía superioridad estadística o aptitud para producción.
+
+### Las mejoras se concentraron en groundedness y utilidad
+
+**Evidencia:** las mayores mejoras se observaron en:
+
+| Métrica | Baseline | Optimizado | Delta |
+|---|---:|---:|---:|
+| Broker Actionability | 0.7952 | 0.8742 | +0.0790 |
+| Faithfulness / Groundedness | 0.7046 | 0.7562 | +0.0516 |
+| Answer Relevance | 0.8563 | 0.8647 | +0.0084 |
+
+En el análisis por caso, el prompt optimizado ganó cuatro de ocho casos en Broker Actionability frente a dos del baseline, y cinco de ocho en Faithfulness frente a tres del baseline.
+
+**Aprendizaje:** la optimización consiguió el comportamiento buscado por el prompt: respuestas mejor respaldadas y más útiles para una conversación con clientes. Answer Relevance ya era alta en el baseline, por lo que su mejora marginal de `0.0084` aporta poca evidencia adicional.
+
+### El gate de Correctness pasó por un margen frágil
+
+**Evidencia:** Answer Correctness disminuyó de `0.6582` a `0.6395`, una regresión de aproximadamente `0.0186`. La política permitía una caída máxima de `0.02`:
+
+```text
+Mínimo permitido: 0.6582 - 0.0200 = 0.6382
+Resultado:         0.6395
+Margen del gate:   aproximadamente 0.0013
+```
+
+La comparación por caso terminó equilibrada: tres victorias para cada prompt y dos empates. El menor promedio optimizado indica que la magnitud de las pérdidas fue ligeramente mayor que la de sus ganancias.
+
+**Aprendizaje:** un gate booleano puede ocultar cuán cerca estuvo de fallar. Los reportes deben mostrar no solamente `passed`, sino también el valor observado, el límite exigido y el margen. La aprobación debe considerarse sensible al ruido del juez porque una variación pequeña podría cambiar el resultado.
+
+**Acción recomendada:** repetir la evaluación varias veces con los mismos contextos y registrar la distribución de Correctness antes de considerar estable la decisión. El gate debería evaluarse con el promedio de repeticiones o con un intervalo de confianza, no solamente con una corrida.
+
+### Context Relevance confirmó la variabilidad del juez
+
+**Evidencia:** aunque baseline y optimizado recibieron contextos idénticos, Context Relevance cambió de `0.4814` a `0.4786`. Cinco de los ocho casos fueron empates, dos favorecieron al baseline y uno al optimizado.
+
+**Aprendizaje:** una diferencia de `-0.0028` en una métrica cuyo input no cambió es evidencia empírica de variabilidad del evaluador LLM. No debe atribuirse al prompt ni interpretarse como una degradación del retriever.
+
+**Decisión de diseño validada:** Context Relevance debe permanecer en la evaluación final para diagnosticar retrieval, pero no debe formar parte del objetivo de optimización de GEPA cuando el prompt no controla el contexto recuperado.
+
+### GEPA produjo una modificación material del seed
+
+**Evidencia:** la comparación normalizada reportó `Did GEPA modify the seed prompt? True`. Esto evita confundir cambios reales con diferencias únicamente de espacios o saltos de línea.
+
+**Aprendizaje:** verificar que el optimizador modificó el prompt es una condición necesaria, pero no suficiente. La aceptación depende del desempeño holdout y de los quality gates. En esta ejecución ambas condiciones se cumplieron: hubo una modificación material y el candidato superó la política provisional.
+
+### Un holdout pequeño limita la fuerza de la conclusión
+
+**Hallazgo:** la evaluación final utilizó ocho preguntas, equivalentes a ocho observaciones por métrica. Los 40 scores agregados no constituyen 40 preguntas independientes, porque cada pregunta contribuye cinco métricas relacionadas.
+
+**Aprendizaje:** el tamaño efectivo para evaluar cada métrica sigue siendo ocho. Por ello, cambios de una o dos preguntas pueden alterar sustancialmente promedios, success rate y gates. No debe interpretarse el aumento del success rate de `0.725` a `0.775` como evidencia robusta sin repeticiones o más casos holdout.
+
+### Próxima validación recomendada
+
+Manteniendo intactos los contextos y prompts de esta ejecución:
+
+1. Repetir los jueces LLM al menos tres veces.
+2. Reportar media, desviación, mínimo y máximo por métrica.
+3. Mostrar el margen de cada quality gate.
+4. Revisar manualmente los casos donde Correctness disminuyó.
+5. Confirmar si la mejora de Faithfulness representa prudencia útil o abstenciones excesivas.
+6. Mantener la decisión como `APPROVE_PROVISIONAL` hasta comprobar estabilidad.
+
+**Conclusión:** la versión 2 ofrece evidencia favorable al prompt optimizado y mejora la validez del experimento. Sin embargo, el resultado está condicionado por un holdout pequeño y por un gate de Correctness que pasó con margen mínimo. La principal lección es que una política de aprobación debe comunicar también incertidumbre y distancia al límite, no solamente un resultado booleano.

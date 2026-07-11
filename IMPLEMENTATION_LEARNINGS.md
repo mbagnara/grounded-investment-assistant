@@ -319,3 +319,80 @@ Faithfulness pass rate ≥ 95%
 Fallos críticos = 0
 Límite inferior del intervalo de confianza ≥ mínimo aceptable
 ```
+
+## Revisión 6 — Alcance educativo y tratamiento de fuentes heterogéneas
+
+### Conservar la raw data y mejorar su representación
+
+**Decisión de diseño:** en esta etapa el objetivo principal es aprender y demostrar los componentes de un pipeline RAG. Los archivos de `data/raw/` son datos de prueba y se conservarán sin modificaciones, incluso cuando su cobertura sea incompleta o no coincida completamente con el benchmark.
+
+**Aprendizaje:** no es necesario alterar la fuente original para mejorar la recuperación. La ingestión puede transformar cada registro en un `Document` controlado, separando el texto que recibirá el modelo de embeddings de los campos que se conservarán como metadatos. Esto mantiene la trazabilidad y permite experimentar de forma reproducible.
+
+Para noticias, el contenido indexado debería construirse explícitamente con título, fecha, fuente, descripción y contenido. La URL, el identificador de fila, la consulta de origen y la fecha deben conservarse como metadatos para filtros y citación. Para precios, el texto original puede mantenerse como `page_content`, mientras se extraen `ticker`, `date`, `name` y `row_id` como metadatos durante la ingestión. Para el PDF, deben añadirse al menos `dataset`, `source_file`, `document_type`, `page` y `chunk_id` sin modificar el archivo original.
+
+### Usar cada fuente para enseñar una capacidad distinta de RAG
+
+**Hallazgo:** noticias, precios y filings se indexan actualmente en una sola colección y se recuperan con similitud semántica `top-k`, aunque representan tipos de información diferentes.
+
+**Aprendizaje:** mantener una colección común es aceptable para el baseline educativo, pero una segunda versión debe demostrar recuperación consciente de la fuente. Las noticias permiten practicar búsqueda semántica, filtros temporales, deduplicación y diversidad. Los precios permiten observar las limitaciones de embeddings ante fechas y valores exactos, y practicar filtros por metadata. Los filings permiten estudiar extracción de PDF, chunking, procedencia y recuperación por tipo de documento.
+
+La comparación pedagógica recomendada es:
+
+```text
+Baseline:
+todos los documentos → Chroma → similarity top-k → LLM
+
+Mejorado:
+query routing → filtro de dataset → filtros específicos
+→ similarity o MMR → contexto con fuentes → LLM grounded
+```
+
+### Incorporar routing y filtros sin convertir el proyecto en una aplicación SQL
+
+**Aprendizaje:** aunque en producción los precios exactos se consultarían preferentemente con pandas o SQL, en este proyecto pueden mantenerse en Chroma para aprender metadata filtering. Un router sencillo puede clasificar la pregunta como `global_news`, `stock_price_details`, `sec_filings` o multi-fuente. Para precios puede extraer ticker y fecha; para filings, términos como `10-K`, `10-Q`, auditoría o controles internos.
+
+**Acción recomendada:** implementar primero reglas deterministas y transparentes. Las preguntas multi-fuente deben ejecutar una recuperación separada por dataset con un `k` pequeño por fuente y después combinar los resultados. Esto evita que una fuente domine el `top-k` y permite inspeccionar fácilmente por qué se recuperó cada documento.
+
+### Comparar similarity search con MMR
+
+**Aprendizaje:** variar solamente el prompt no permite estudiar el efecto del retriever. Deben compararse configuraciones de recuperación que mantengan constantes el corpus, la pregunta y el generador:
+
+| Configuración | Estrategia |
+|---|---|
+| A | Similarity, `k=5` |
+| B | MMR, `k=5`, `fetch_k=20` |
+| C | Similarity con filtro de dataset |
+| D | MMR con filtro de dataset |
+
+Esta comparación permite medir si el filtrado mejora la precisión de fuente y si MMR reduce fragmentos redundantes.
+
+### Tratar la falta de cobertura como un resultado observable
+
+**Hallazgo:** algunas preguntas del benchmark solicitan fechas, documentos o combinaciones de fuentes que no están completamente cubiertas por los archivos raw disponibles.
+
+**Aprendizaje:** en un proyecto educativo, esta limitación no obliga a modificar los datos. Es una oportunidad para distinguir entre fallo de recuperación, fallo de generación y ausencia de evidencia. Cada pregunta puede clasificarse en una tabla derivada como `SUPPORTED`, `PARTIAL` o `UNSUPPORTED`, sin alterar los archivos raw.
+
+Una abstención explícita puede ser el comportamiento correcto cuando el corpus no contiene la evidencia solicitada. Su calidad debe evaluarse por separado de la coincidencia con una respuesta esperada que quizá provenga de otra versión del dataset.
+
+### Evaluar retrieval antes de evaluar la respuesta
+
+**Aprendizaje:** las métricas del LLM no explican por sí solas dónde falla el pipeline. Antes de medir Correctness o Actionability deben registrarse métricas deterministas de recuperación:
+
+1. **Source accuracy:** si se recuperó el dataset esperado.
+2. **Retrieval hit rate:** si algún documento contiene la evidencia o términos requeridos.
+3. **Metadata accuracy:** si ticker, fecha, formulario o página coinciden con la consulta.
+4. **Diversity:** cuántas fuentes o pasajes únicos aparecen en el contexto.
+5. **Abstention quality:** si el sistema reconoce correctamente evidencia ausente o insuficiente.
+
+### Secuencia de aprendizaje recomendada
+
+1. Construir documentos explícitos para los CSV sin cambiar la raw data.
+2. Añadir metadatos consistentes a noticias, precios y PDF.
+3. Conservar el retriever actual como baseline.
+4. Implementar routing por dataset y filtros de ticker o fecha.
+5. Comparar similarity con MMR.
+6. Evaluar retrieval independientemente de generation.
+7. Comparar prompts usando exactamente los mismos contextos recuperados.
+8. Experimentar después con `chunk_size`, `chunk_overlap` y `k`.
+
+**Conclusión:** las imperfecciones del corpus forman parte útil del experimento. El objetivo no es ocultarlas, sino demostrar que un pipeline RAG debe conocer los límites de sus fuentes, recuperar con una estrategia apropiada y abstenerse cuando la evidencia no está disponible.

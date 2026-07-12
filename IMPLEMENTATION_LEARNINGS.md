@@ -904,6 +904,219 @@ document_id = sha256(identity.encode("utf-8")).hexdigest()
 
 **Aprendizaje:** el ID representa la identidad completa de la unidad indexada. Si contenido y metadata no cambian, el ID tampoco cambia. Esto ayuda a detectar duplicados y evita que la misma fila o chunk aparezca varias veces con IDs aleatorios después de reejecutar el notebook.
 
+#### El ID funciona como clave de gestión del registro vectorial
+
+El ID no es solamente una etiqueta descriptiva. Dentro de Chroma cumple una función similar a una clave primaria: permite distinguir y administrar cada registro independientemente de los demás.
+
+Conceptualmente, un registro contiene:
+
+```text
+Chroma record
+├── id         → identidad y gestión
+├── embedding  → búsqueda por similitud
+├── document   → texto original
+└── metadata   → filtros y procedencia
+```
+
+El embedding responde a la pregunta “¿qué documentos se parecen semánticamente a la consulta?”. El ID responde a otra pregunta: “¿qué registro exacto debe insertarse, reemplazarse, consultarse o eliminarse?”.
+
+Esta diferencia es importante porque dos documentos podrían tener embeddings muy parecidos y aun así representar registros distintos. Por ejemplo, dos observaciones consecutivas de Tencent pueden tener texto casi idéntico, pero pertenecen a fechas distintas y necesitan IDs distintos.
+
+```text
+Tencent — 2026-03-11 → document_id A
+Tencent — 2026-03-12 → document_id B
+```
+
+#### Inserciones idempotentes y control de duplicados
+
+Una operación es idempotente cuando repetirla no crea efectos adicionales. Si el mismo `Document` produce siempre el mismo ID, el pipeline puede reconocer que se trata de la misma unidad lógica.
+
+```python
+first_run_id = deterministic_document_id(doc)
+second_run_id = deterministic_document_id(doc)
+
+assert first_run_id == second_run_id
+```
+
+Sin IDs deterministas, dos ejecuciones podrían asignar valores aleatorios:
+
+```text
+Primera ejecución:  price-row-123 → random-id-A
+Segunda ejecución:  price-row-123 → random-id-B
+```
+
+Chroma podría interpretar ambos como registros diferentes y devolver contenido duplicado durante retrieval. Con un ID estable:
+
+```text
+Primera ejecución:  price-row-123 → hash-X
+Segunda ejecución:  price-row-123 → hash-X
+```
+
+el sistema puede detectar la duplicación antes de indexar o utilizar una operación de actualización/upsert cuando corresponda.
+
+En el notebook se valida además que los IDs generados sean únicos dentro del lote:
+
+```python
+document_ids = [deterministic_document_id(doc) for doc in all_docs]
+
+if len(document_ids) != len(set(document_ids)):
+    raise ValueError("Duplicate document identities were detected before indexing.")
+```
+
+Esto evita enviar a Chroma dos unidades con la misma identidad durante una misma construcción del índice.
+
+#### Actualización y eliminación selectiva
+
+Un ID conocido permite administrar un registro sin reconstruir conceptualmente toda la colección:
+
+```python
+vector_store.delete(ids=[document_id])
+```
+
+También permite implementar un flujo de actualización:
+
+```text
+identificar el registro anterior
+    ↓
+eliminar o reemplazar por ID
+    ↓
+generar el embedding actualizado
+    ↓
+guardar la nueva versión
+```
+
+Por ejemplo, si se corrige una noticia o se reemplaza un chunk mal extraído, el ID permite dirigir la operación al registro correspondiente, en vez de buscarlo por similitud semántica y arriesgarse a modificar otro documento parecido.
+
+El notebook actual reconstruye completamente `investment_rag_v2` en cada ejecución, por lo que todavía no necesita actualizaciones incrementales. Sin embargo, los IDs deterministas dejan preparado el modelo de datos para implementar esas operaciones posteriormente.
+
+#### Trazabilidad desde Chroma hasta la fuente
+
+El ID identifica el registro vectorial, pero debe complementarse con metadata de procedencia:
+
+```python
+{
+    "source_file": "stock_price_details.csv",
+    "row_id": 0,
+    "ticker": "0700.HK",
+    "date": "2026-03-12",
+}
+```
+
+La combinación permite recorrer el linaje en ambas direcciones:
+
+```text
+archivo raw + fila/chunk
+        ↓
+Document
+        ↓
+document_id
+        ↓
+registro Chroma
+```
+
+Y durante una investigación:
+
+```text
+registro recuperado de Chroma
+        ↓
+document_id + metadata
+        ↓
+archivo, fila, página o chunk de origen
+```
+
+Esto facilita auditoría, explicación de respuestas y diagnóstico de problemas de retrieval.
+
+#### `document_id`, `row_id` y `chunk_id` no cumplen la misma función
+
+Los tres identificadores se complementan:
+
+| Identificador | Alcance | Función |
+|---|---|---|
+| `document_id` | Toda la colección Chroma | Identifica de forma única el registro vectorial |
+| `row_id` | Un CSV específico | Indica la fila raw que originó el documento |
+| `chunk_id` | La lista de chunks SEC | Indica la unidad creada durante el chunking |
+
+Ejemplo de precio:
+
+```text
+document_id = a87f...  → registro Chroma
+source_file = stock_price_details.csv
+row_id = 0             → fila de origen
+```
+
+Ejemplo SEC:
+
+```text
+document_id = b31c...  → registro Chroma
+source_file = sec_filings_10q.pdf
+page = 12              → página heredada del loader
+chunk_id = 47          → chunk creado por el splitter
+```
+
+`row_id` o `chunk_id` por sí solos no garantizan unicidad global. Podría existir un `row_id=0` en ambos CSV, o un nuevo proceso de chunking podría volver a producir `chunk_id=0`. El hash incorpora contenido y metadata para crear una identidad válida en toda la colección.
+
+#### Propiedad de detección de cambios
+
+Como el hash depende de `page_content` y metadata, cualquier cambio relevante genera un ID diferente:
+
+```text
+mismo contenido + misma metadata → mismo ID
+contenido modificado             → nuevo ID
+metadata modificada              → nuevo ID
+```
+
+Esto convierte el ID en una huella de la versión exacta del documento. Puede utilizarse para detectar que una unidad necesita un nuevo embedding.
+
+Por ejemplo:
+
+```text
+Close = 546.5 → hash-A
+Close = 547.0 → hash-B
+```
+
+El nuevo valor produce una identidad diferente y señala que el registro vectorial anterior ya no representa el contenido actual.
+
+#### Limitación de los IDs basados en contenido
+
+Un ID nuevo no elimina automáticamente el registro anterior. En un pipeline incremental, si cambia el contenido y se agrega el nuevo hash sin eliminar el antiguo, ambas versiones podrían permanecer en Chroma.
+
+```text
+versión anterior → hash-A → todavía almacenada
+versión nueva    → hash-B → agregada
+```
+
+Por eso, una estrategia incremental necesita además una clave estable de origen, por ejemplo:
+
+```text
+source_file + row_id
+source_file + page + local_chunk_position
+URL de la noticia
+```
+
+Esa clave estable permite localizar la versión anterior; el hash permite comprobar si su contenido cambió.
+
+```text
+source key → identidad lógica estable
+content hash → versión exacta del contenido
+```
+
+El notebook evita actualmente este problema eliminando y reconstruyendo la colección antes de indexar. En un sistema de actualización continua habría que registrar ambas identidades o mantener un manifiesto de indexación.
+
+#### Colisiones y seguridad práctica
+
+SHA-256 produce un espacio de IDs extremadamente grande. La posibilidad de que dos contenidos diferentes generen accidentalmente el mismo hash es despreciable para la escala del proyecto. Aun así, el hash se utiliza aquí como mecanismo de identidad y reproducibilidad, no como prueba de autenticidad o firma digital del documento.
+
+**Conclusión de gestión:** un ID bien diseñado permite responder cuatro preguntas operativas fundamentales:
+
+```text
+¿Ya indexé esta unidad?
+¿Qué registro exacto recuperé?
+¿Qué registro debo actualizar o eliminar?
+¿Cambió el contenido desde la última indexación?
+```
+
+Los embeddings hacen posible encontrar documentos por significado; los IDs hacen posible gestionarlos con precisión durante todo su ciclo de vida.
+
 ### Modelo mental consolidado
 
 ```text

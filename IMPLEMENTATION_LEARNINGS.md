@@ -477,3 +477,353 @@ Manteniendo intactos los contextos y prompts de esta ejecución:
 6. Mantener la decisión como `APPROVE_PROVISIONAL` hasta comprobar estabilidad.
 
 **Conclusión:** la versión 2 ofrece evidencia favorable al prompt optimizado y mejora la validez del experimento. Sin embargo, el resultado está condicionado por un holdout pequeño y por un gate de Correctness que pasó con margen mínimo. La principal lección es que una política de aprobación debe comunicar también incertidumbre y distancia al límite, no solamente un resultado booleano.
+
+## Revisión 8 — De archivos raw a documentos, embeddings y una colección Chroma
+
+### La unidad de indexación no es el archivo completo
+
+**Aprendizaje:** los tres archivos raw no se convierten en solamente tres embeddings. Cada fuente se transforma primero en unidades de recuperación pequeñas e independientes, representadas mediante objetos `Document` de LangChain:
+
+```text
+stock_price_details.csv → un Document por fila de precio
+global_news.csv         → un Document por noticia
+sec_filings_10q.pdf     → un Document por chunk de texto
+```
+
+Después, el modelo de embeddings genera un vector por cada `Document`. Si existen 500 filas de precios, 500 noticias y 100 chunks SEC, Chroma recibe aproximadamente 1,100 registros y embeddings, no tres.
+
+```text
+3 archivos raw
+    ↓
+1,100 Documents
+    ↓
+1,100 embeddings
+    ↓
+colección Chroma
+```
+
+**Razón de diseño:** un embedding que representara todo un CSV o todo el PDF sería demasiado general. También obligaría a enviar grandes cantidades de texto irrelevante al LLM. Las unidades pequeñas permiten recuperar únicamente las filas, noticias o fragmentos relacionados con la pregunta.
+
+### `Document` mantiene juntos contenido y procedencia
+
+Un `Document` contiene dos componentes con funciones distintas:
+
+```python
+Document(
+    page_content="Text used for semantic retrieval",
+    metadata={
+        "dataset": "source identifier",
+        "source_file": "original file",
+    },
+)
+```
+
+`page_content` es el texto enviado al modelo de embeddings y posteriormente al LLM si el documento es recuperado. `metadata` no se convierte en embedding en esta implementación; se almacena como información estructurada para filtros, trazabilidad, citas y diagnóstico.
+
+Ejemplo de precio:
+
+```python
+Document(
+    page_content=(
+        "On this record, Date is 2026-03-12, ticker is 0700.HK, "
+        "name is Tencent (Hong Kong), Open is 550.5, Close is 546.5..."
+    ),
+    metadata={
+        "dataset": "stock_price_details",
+        "source_file": "stock_price_details.csv",
+        "row_id": 0,
+        "ticker": "0700.HK",
+        "date": "2026-03-12",
+        "name": "Tencent (Hong Kong)",
+    },
+)
+```
+
+Esta separación permite combinar búsqueda semántica y restricciones exactas:
+
+```text
+page_content → "¿Este registro es semánticamente relevante?"
+metadata     → "¿Pertenece exactamente a 0700.HK y a esta fecha?"
+```
+
+### Los CSV requieren representaciones distintas según su contenido
+
+**Precios:** cada fila ya describe una observación independiente, por lo que se convierte en un `Document`. El resumen completo se usa como `page_content`; ticker, fecha, nombre y fila se extraen como metadata.
+
+**Noticias:** cada fila representa un artículo. El texto semántico se construye explícitamente para que el embedding reciba los campos informativos:
+
+```text
+Title
+Published at
+Source
+Description
+Content
+```
+
+URL, fecha, título, fuente, query de recopilación y `row_id` se mantienen como metadata. Esto permite citar la noticia y aplicar filtros sin depender de que el embedding interprete correctamente una URL o una fecha exacta.
+
+**Aprendizaje:** no existe una transformación universal para todos los CSV. El diseño de `page_content` y metadata debe reflejar qué representa cada fila y cómo se espera recuperarla.
+
+### El PDF requiere chunking antes de crear embeddings
+
+**Aprendizaje:** un filing completo es demasiado largo y contiene múltiples secciones. `PyPDFLoader` lo carga conservando procedencia por página y `RecursiveCharacterTextSplitter` divide esas páginas en chunks con overlap.
+
+```python
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000,
+    chunk_overlap=200,
+)
+
+sec_docs = text_splitter.split_documents(sec_raw_docs)
+```
+
+Cada chunk conserva o recibe metadata como:
+
+```python
+{
+    "dataset": "sec_filings",
+    "source_file": "sec_filings_10q.pdf",
+    "document_type": "10-Q",
+    "page": 12,
+    "chunk_id": 47,
+}
+```
+
+El overlap ayuda a evitar que una idea ubicada en el límite entre dos chunks pierda completamente su contexto. El costo es cierta duplicación, por lo que retrieval debe deduplicar o favorecer diversidad cuando sea necesario.
+
+### El regex convierte texto legible en metadata filtrable
+
+El precio llega como un único string. La expresión regular identifica y captura campos con nombre:
+
+```python
+price_record_pattern = re.compile(
+    r"Date is (?P<date>[^,]+), ticker is (?P<ticker>[^,]+), "
+    r"name is (?P<name>[^,]+),"
+)
+
+match = price_record_pattern.search(price_summary)
+```
+
+Si existe una coincidencia:
+
+```python
+fields = match.groupdict()
+```
+
+produce conceptualmente:
+
+```python
+{
+    "date": "2026-03-12",
+    "ticker": "0700.HK",
+    "name": "Tencent (Hong Kong)",
+}
+```
+
+Si `match` es `None`, la fila se registra como no procesada y no se agrega a `stock_docs`. Al terminar, el notebook genera un error si hubo filas no parseadas.
+
+**Aprendizaje:** esta validación evita indexar silenciosamente documentos con ticker o fecha faltantes. Un documento con `metadata={"ticker": None}` podría existir en Chroma, pero no aparecería al aplicar un filtro exacto, creando un fallo difícil de diagnosticar.
+
+### Las listas reúnen documentos independientes antes de indexarlos
+
+Cada iteración del CSV construye una unidad válida y la agrega a su colección en memoria:
+
+```python
+stock_docs.append(Document(...))
+news_docs.append(Document(...))
+```
+
+Las listas no fusionan los documentos; solamente los reúnen para enviarlos al vector store:
+
+```python
+csv_docs = stock_docs + news_docs
+all_docs = csv_docs + sec_docs
+```
+
+Conceptualmente:
+
+```text
+all_docs
+├── Document de precio 1
+├── Document de precio 2
+├── Document de noticia 1
+├── Document de noticia 2
+├── Document SEC chunk 1
+└── Document SEC chunk 2
+```
+
+Chroma genera y almacena un embedding separado por elemento. Esto preserva la granularidad necesaria para recuperar evidencia específica.
+
+### Una colección física puede contener tres fuentes lógicas
+
+Los documentos se almacenan juntos en:
+
+```python
+collection_name = "investment_rag_v2"
+```
+
+La separación se mantiene mediante:
+
+```python
+metadata["dataset"]
+```
+
+```text
+investment_rag_v2
+├── dataset = stock_price_details
+├── dataset = global_news
+└── dataset = sec_filings
+```
+
+Esto permite recuperar solamente una fuente:
+
+```python
+filter={"dataset": {"$eq": "sec_filings"}}
+```
+
+o ejecutar búsquedas separadas por fuente y combinar los resultados para una pregunta multi-fuente.
+
+**Aprendizaje:** una colección compartida es razonable para este proyecto educativo porque todas las fuentes utilizan el mismo embedding model y el routing puede separarlas mediante metadata. Colecciones independientes serían más apropiadas si las fuentes necesitaran modelos, permisos, ciclos de actualización o políticas de retención diferentes.
+
+### Por qué este proyecto utiliza una sola colección
+
+**Decisión de diseño:** `investment_rag_v2` funciona como una capa unificada de conocimiento financiero. Los documentos siguen siendo independientes y conservan su fuente, pero comparten el mismo espacio vectorial porque todos se generan con:
+
+```python
+OpenAIEmbeddings(model="text-embedding-3-small")
+```
+
+Usar una sola colección aporta cinco ventajas concretas en este proyecto:
+
+1. **Simplifica el aprendizaje del pipeline.** Solo es necesario crear, persistir y administrar un vector store. Esto permite concentrarse en ingestión, embeddings, metadata, retrieval y generación sin introducir coordinación prematura entre varias bases vectoriales.
+
+2. **Mantiene todas las fuentes en el mismo espacio semántico.** Una pregunta y todos los documentos se representan con el mismo embedding model. Sus vectores son comparables y pueden buscarse mediante una interfaz común.
+
+3. **Facilita preguntas multi-fuente.** Una consulta puede necesitar simultáneamente noticias y filings, o precios y filings. El pipeline usa la misma colección, ejecuta búsquedas filtradas por cada dataset y combina los documentos recuperados.
+
+4. **Centraliza persistencia y reproducibilidad.** Existe un solo nombre de colección, un único conteo de documentos y una única política de IDs deterministas. Esto hace más sencillo reconstruir y verificar el índice completo.
+
+5. **Demuestra separación lógica mediante metadata.** Aunque físicamente comparten colección, los documentos no pierden su identidad. El campo `dataset` actúa como una partición lógica.
+
+Ejemplo de pregunta de una sola fuente:
+
+```text
+What did the SEC filing say about internal controls?
+```
+
+El router selecciona:
+
+```python
+datasets = ["sec_filings"]
+```
+
+y Chroma recibe un filtro:
+
+```python
+filter={"dataset": {"$eq": "sec_filings"}}
+```
+
+Aunque precios y noticias estén almacenados en la misma colección, no participan en esa búsqueda.
+
+Ejemplo multi-fuente:
+
+```text
+Based on the SEC filings and recent market news, which company appears lower risk?
+```
+
+El router puede seleccionar:
+
+```python
+datasets = ["sec_filings", "global_news"]
+```
+
+Luego realiza conceptualmente dos búsquedas sobre la misma colección:
+
+```python
+sec_docs = similarity_search(
+    question,
+    filter={"dataset": {"$eq": "sec_filings"}},
+)
+
+news_docs = similarity_search(
+    question,
+    filter={"dataset": {"$eq": "global_news"}},
+)
+
+retrieved_docs = sec_docs + news_docs
+```
+
+Este patrón garantiza representación de las fuentes solicitadas sin mantener varios objetos Chroma.
+
+**Aclaración:** una sola colección no significa un único embedding ni un único documento combinado. Cada fila, noticia o chunk sigue almacenándose como un registro separado:
+
+```text
+Una colección
+├── muchos embeddings de precios
+├── muchos embeddings de noticias
+└── muchos embeddings de chunks SEC
+```
+
+La colección es el contenedor común; los `Document` siguen siendo las unidades individuales de recuperación.
+
+### Cuándo sería preferible usar colecciones separadas
+
+La decisión de una colección no es universal. Conviene separar fuentes cuando exista al menos una de estas necesidades:
+
+- Diferentes embedding models por tipo de contenido.
+- Permisos de acceso distintos para noticias, precios o documentos regulatorios.
+- Ciclos de actualización independientes y de gran escala.
+- Políticas diferentes de retención o eliminación.
+- Configuraciones de distancia o indexación incompatibles.
+- Equipos o servicios distintos responsables de cada fuente.
+- Volúmenes suficientemente grandes para escalar cada índice por separado.
+
+Ejemplo:
+
+```text
+investment_news
+investment_prices
+investment_sec_filings
+```
+
+En esa arquitectura, un componente superior tendría que consultar una o varias colecciones y fusionar sus resultados. Esa complejidad puede ser útil en producción, pero no es necesaria para demostrar los objetivos actuales del notebook.
+
+**Conclusión de diseño:** se utiliza una sola colección porque las tres fuentes comparten embedding model, pertenecen al mismo dominio financiero y pueden separarse de manera suficiente mediante metadata. Esto mantiene el pipeline sencillo y permite recuperación multi-fuente, sin sacrificar la procedencia individual de cada documento.
+
+### Los IDs deterministas hacen reproducible la colección
+
+Antes de indexar, cada `Document` recibe un ID derivado de su contenido y metadata:
+
+```python
+identity = json.dumps(doc.metadata, sort_keys=True) + doc.page_content
+document_id = sha256(identity.encode("utf-8")).hexdigest()
+```
+
+**Aprendizaje:** el ID representa la identidad completa de la unidad indexada. Si contenido y metadata no cambian, el ID tampoco cambia. Esto ayuda a detectar duplicados y evita que la misma fila o chunk aparezca varias veces con IDs aleatorios después de reejecutar el notebook.
+
+### Modelo mental consolidado
+
+```text
+RAW SOURCE
+    ↓
+load and validate
+    ↓
+choose retrieval unit
+    ├── price row
+    ├── news article
+    └── PDF chunk
+    ↓
+Document
+    ├── page_content → embedding and LLM context
+    └── metadata     → filters, provenance and citations
+    ↓
+list of Documents
+    ↓
+deterministic IDs + embedding model
+    ↓
+one Chroma collection
+    ↓
+source-aware filtered retrieval
+```
+
+**Conclusión:** el principio más importante es que los archivos son fuentes de datos, pero los `Document` son las unidades reales del RAG. La calidad del pipeline depende de elegir correctamente esas unidades, validar su metadata y conservar suficiente procedencia para recuperar y explicar cada respuesta.

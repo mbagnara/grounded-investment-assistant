@@ -591,6 +591,109 @@ Cada chunk conserva o recibe metadata como:
 
 El overlap ayuda a evitar que una idea ubicada en el límite entre dos chunks pierda completamente su contexto. El costo es cierta duplicación, por lo que retrieval debe deduplicar o favorecer diversidad cuando sea necesario.
 
+#### Por qué el código agrega `chunk_id` pero no agrega `page` manualmente
+
+**Aclaración:** la metadata `page` sí está presente en los chunks SEC, aunque no aparezca una asignación explícita como:
+
+```python
+doc.metadata["page"] = page_number
+```
+
+La razón es que `PyPDFLoader` agrega automáticamente la posición de página cuando carga el PDF:
+
+```python
+sec_loader = PyPDFLoader(str(sec_pdf_path))
+sec_raw_docs = sec_loader.load()
+```
+
+Un documento de página puede tener inicialmente esta forma:
+
+```python
+Document(
+    page_content="Text extracted from this PDF page...",
+    metadata={
+        "source": "../data/raw/sec_filings_10q.pdf",
+        "page": 12,
+    },
+)
+```
+
+El notebook después enriquece esa metadata:
+
+```python
+doc.metadata.update({
+    "dataset": "sec_filings",
+    "source_file": sec_pdf_path.name,
+    "document_type": "10-Q",
+})
+```
+
+`update()` agrega las nuevas claves sin eliminar `page`. Conceptualmente, la metadata queda así:
+
+```python
+{
+    "source": "../data/raw/sec_filings_10q.pdf",
+    "page": 12,
+    "dataset": "sec_filings",
+    "source_file": "sec_filings_10q.pdf",
+    "document_type": "10-Q",
+}
+```
+
+Cuando se ejecuta:
+
+```python
+sec_docs = text_splitter.split_documents(sec_raw_docs)
+```
+
+`split_documents()` divide el `page_content`, pero copia la metadata del documento padre a cada chunk resultante. Si la página 12 genera tres chunks, los tres conservan:
+
+```python
+{"page": 12}
+```
+
+`chunk_id`, en cambio, no puede existir antes del split porque `PyPDFLoader` no sabe cuántos chunks producirá el text splitter. Por eso se crea después:
+
+```python
+for chunk_id, doc in enumerate(sec_docs):
+    doc.metadata["chunk_id"] = chunk_id
+```
+
+El resultado final combina metadata heredada y metadata creada por el proyecto:
+
+```python
+{
+    "dataset": "sec_filings",
+    "source_file": "sec_filings_10q.pdf",
+    "document_type": "10-Q",
+    "page": 12,
+    "chunk_id": 47,
+}
+```
+
+```text
+page     → creada por PyPDFLoader y heredada por el chunk
+chunk_id → creada por el notebook después del chunking
+```
+
+No se reasigna `page` manualmente porque sería redundante y podría sobrescribir metadata confiable proporcionada por el loader.
+
+La herencia se puede verificar directamente:
+
+```python
+print("Before chunking:", sec_raw_docs[0].metadata)
+print("After chunking:", sec_docs[0].metadata)
+```
+
+Dependiendo de la versión del loader, también pueden aparecer campos como `page_label` o `total_pages`. Normalmente `page` utiliza índice basado en cero:
+
+```text
+page = 0 → primera página física del PDF
+page = 1 → segunda página física del PDF
+```
+
+La posición física puede diferir del número visual impreso en el filing debido a portada, índice, numeración romana o anexos. Cuando existe, `page_label` ayuda a conservar esa distinción.
+
 ### El regex convierte texto legible en metadata filtrable
 
 El precio llega como un único string. La expresión regular identifica y captura campos con nombre:

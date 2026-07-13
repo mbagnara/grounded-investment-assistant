@@ -1143,3 +1143,351 @@ source-aware filtered retrieval
 ```
 
 **Conclusión:** el principio más importante es que los archivos son fuentes de datos, pero los `Document` son las unidades reales del RAG. La calidad del pipeline depende de elegir correctamente esas unidades, validar su metadata y conservar suficiente procedencia para recuperar y explicar cada respuesta.
+
+## Revisión 9 — Protocolo experimental de la sección 1.5
+
+### La sección 1.5 hace más que cargar el benchmark
+
+**Aprendizaje:** aunque el encabezado menciona cargar el gold benchmark y evaluar el baseline, la función principal de esta sección es construir el protocolo experimental que conecta retrieval, generación y evaluación. Las métricas DeepEval se calculan posteriormente en la sección 1.7.
+
+El flujo completo es:
+
+```text
+golden_benchmark_dataset.csv
+        ↓
+validar y limpiar
+        ↓
+normalizar nombres de fuentes
+        ↓
+separar optimización y holdout
+        ↓
+recuperar evidencia una vez
+        ↓
+congelar contextos
+        ↓
+diagnosticar retrieval
+        ↓
+generar respuestas baseline
+        ↓
+crear LLMTestCase para DeepEval
+```
+
+Esta separación de responsabilidades permite identificar si un fallo proviene del benchmark, retrieval, generación o evaluación.
+
+### Validar el benchmark antes de consumir modelos
+
+La sección exige las columnas:
+
+```python
+required_columns = {
+    "question",
+    "response",
+    "source_hint",
+    "supporting_sources",
+    "context",
+}
+```
+
+**Aprendizaje:** la validación debe ocurrir antes de realizar llamadas de embeddings o LLM. Si falta `question`, no existe input; si falta `response`, no puede evaluarse Correctness; si falta `supporting_sources`, no puede verificarse procedencia.
+
+También se eliminan filas sin pregunta o respuesta:
+
+```python
+gold_df = gold_df.dropna(
+    subset=["question", "response"]
+).reset_index(drop=True)
+```
+
+y se asigna:
+
+```python
+gold_df["case_id"] = gold_df.index + 1
+```
+
+`case_id` funciona como clave de unión entre respuestas baseline, respuestas optimizadas, scores, razones del juez y diagnósticos. A diferencia del `document_id` de Chroma, identifica un caso experimental, no un documento indexado.
+
+### Normalizar nombres físicos a datasets lógicos
+
+El benchmark conserva nombres como:
+
+```text
+all_prices_clean.csv
+sec_filings.txt
+```
+
+mientras la implementación utiliza:
+
+```text
+stock_price_details.csv
+sec_filings_10q.pdf
+```
+
+`SOURCE_DATASET_MAP` transforma ambos contratos físicos a identificadores lógicos:
+
+```text
+all_prices_clean.csv       → stock_price_details
+stock_price_details.csv    → stock_price_details
+sec_filings.txt            → sec_filings
+sec_filings_10q.pdf        → sec_filings
+global_news.csv            → global_news
+```
+
+**Aprendizaje:** evaluación y retrieval deben comparar categorías estables, no depender directamente de nombres de archivo que pueden cambiar. Si una fuente no existe en el mapa, la ejecución se detiene para evitar clasificaciones silenciosamente incorrectas.
+
+### El holdout representa el examen no visto por GEPA
+
+El benchmark de 20 preguntas se divide en:
+
+```text
+optimization_df → 12 casos observados por GEPA
+evaluation_df   →  8 casos holdout
+```
+
+El holdout puede entenderse como un examen final:
+
+```text
+optimization_df → ejercicios de práctica
+evaluation_df   → examen con preguntas no usadas para optimizar
+```
+
+**Aprendizaje:** si GEPA optimizara y se evaluara sobre las mismas preguntas, un score mayor podría reflejar memorización o adaptación específica, no una mejora generalizable. Separar el holdout reduce data leakage y permite medir mejor si las reglas del nuevo prompt funcionan en ejemplos no vistos.
+
+El split usa:
+
+```python
+.groupby("expected_dataset")
+.sample(frac=0.4, random_state=42)
+```
+
+`groupby()` conserva representación aproximada de noticias, precios y filings. `random_state=42` garantiza que las mismas preguntas formen el holdout en ejecuciones repetidas.
+
+### El holdout actual es suficiente para aprender, no para concluir estadísticamente
+
+Ocho preguntas implican solamente ocho observaciones independientes por métrica:
+
+```text
+8 preguntas × 5 métricas = 40 scores
+```
+
+Los 40 scores no equivalen a 40 preguntas independientes porque las cinco métricas evalúan las mismas ocho respuestas.
+
+**Aprendizaje:** una o dos preguntas pueden cambiar significativamente los promedios y quality gates. Las conclusiones deben expresarse como `APPROVE_PROVISIONAL` hasta repetir los jueces o ampliar el holdout.
+
+En un proyecto mayor se separarían tres conjuntos:
+
+```text
+train      → optimizar el prompt
+validation → seleccionar configuración y thresholds
+test       → evaluación final una sola vez
+```
+
+El notebook utiliza una simplificación:
+
+```text
+optimization_df → train/validation combinados
+evaluation_df   → holdout test
+```
+
+### Congelar contextos aísla el efecto del prompt
+
+La sección ejecuta retrieval una sola vez por pregunta y guarda:
+
+```python
+benchmark_contexts[question] = {
+    "documents": docs,
+    "formatted_context": format_retrieved_context(docs),
+    "retrieval_context": [doc.page_content for doc in docs],
+    "retrieved_sources": [...],
+    "diagnostics": retrieval_result["diagnostics"],
+}
+```
+
+Cada representación tiene un consumidor distinto:
+
+| Campo | Consumidor |
+|---|---|
+| `documents` | Diagnóstico y metadata |
+| `formatted_context` | Prompt enviado al generador |
+| `retrieval_context` | Métricas DeepEval |
+| `retrieved_sources` | Trazabilidad y presentación |
+| `diagnostics` | Auditoría del router y filtros |
+
+Baseline, GEPA y prompt optimizado reutilizan el mismo cache:
+
+```text
+misma pregunta
+misma evidencia
+mismo modelo
+misma temperatura
+diferente prompt
+```
+
+**Aprendizaje:** si cada prompt ejecutara retrieval independientemente, una diferencia de score podría deberse a contextos distintos. Congelar la evidencia convierte la sección 2 en un experimento de prompt más limpio.
+
+### El cache no entrega las respuestas holdout a GEPA
+
+Guardar los documentos de todas las preguntas no significa necesariamente filtrar las respuestas esperadas del holdout al optimizador. GEPA recibe goldens construidos solamente desde `optimization_df`.
+
+```text
+Contexto holdout almacenado
+→ necesario para ejecutar ambos prompts con la misma evidencia
+
+Respuesta esperada holdout no entregada como Golden a GEPA
+→ preserva la separación experimental
+```
+
+**Aprendizaje:** lo que debe mantenerse fuera del proceso de selección es el par evaluativo `pregunta + respuesta esperada`, no necesariamente la existencia técnica del contexto recuperado.
+
+### Riesgo de utilizar la pregunta como clave del cache
+
+Actualmente:
+
+```python
+benchmark_contexts[row["question"]] = {...}
+```
+
+funciona porque las preguntas del benchmark son únicas. Si dos filas tuvieran exactamente la misma pregunta, la segunda sobrescribiría la primera entrada.
+
+Una opción más robusta sería:
+
+```python
+benchmark_contexts[row["case_id"]] = {...}
+```
+
+y acceder mediante `case_id` durante baseline, GEPA y evaluación.
+
+**Aprendizaje:** las claves de cache deben representar la identidad del caso experimental. El texto de la pregunta es conveniente, pero `case_id` es más seguro cuando pueden existir duplicados o versiones de la misma pregunta.
+
+### Diagnosticar retrieval antes de culpar al generador
+
+`retrieval_quality()` compara:
+
+- Dataset esperado.
+- Datasets recuperados.
+- Ticker solicitado.
+- Fechas solicitadas.
+- Cantidad de fuentes únicas.
+
+y produce:
+
+```text
+SUPPORTED
+PARTIAL
+UNSUPPORTED
+```
+
+```text
+UNSUPPORTED
+→ no apareció el dataset esperado
+
+PARTIAL
+→ apareció la fuente, pero falta un constraint detectado
+
+SUPPORTED
+→ coincidieron la fuente y los constraints detectados
+```
+
+**Aclaración:** `SUPPORTED` no garantiza que el contexto contenga todos los hechos requeridos. Indica solamente que las verificaciones implementadas pasaron. Una pregunta puede recuperar el dataset correcto pero omitir la oración específica que contiene la respuesta.
+
+Por ello, el estado debería interpretarse como calidad de constraints recuperados, no como una prueba completa de suficiencia factual.
+
+### Las fechas naturales son una limitación del diagnóstico actual
+
+`extract_question_constraints()` reconoce fechas ISO:
+
+```text
+2026-03-12
+```
+
+pero el benchmark también utiliza:
+
+```text
+October 23, 2025
+November 6, 2025
+April 17, 2026
+```
+
+Si la fecha no es detectada:
+
+```python
+requested_dates = []
+date_match = None
+```
+
+el caso podría marcarse `SUPPORTED` aunque falte una de las fechas necesarias. Esto explica por qué un resultado de cobertura puede parecer correcto mientras la respuesta indica que no encontró el valor solicitado.
+
+**Acción recomendada:** normalizar fechas naturales a `YYYY-MM-DD` antes de construir filtros y diagnósticos. Después, `date_match=False` podrá distinguir correctamente una recuperación parcial.
+
+### Generar el baseline sobre el holdout establece el punto de comparación
+
+La sección utiliza:
+
+```python
+baseline_eval_df = evaluation_df.copy()
+```
+
+y genera respuestas solamente para esos ocho casos. No vuelve a ejecutar retrieval; usa `benchmark_contexts`.
+
+Cada fila de `baseline_results_df` conserva:
+
+```text
+case_id
+question
+expected_output
+actual_output
+retrieved_context
+retrieved_sources
+expected_dataset
+retrieved_datasets
+source_match
+ticker_match
+date_match
+coverage_status
+```
+
+**Aprendizaje:** guardar respuesta y evidencia juntas permite investigar si un score bajo ocurrió porque la evidencia faltaba, el modelo la interpretó mal o el benchmark esperaba otra fuente.
+
+### `LLMTestCase` conecta el pipeline con DeepEval
+
+Cada respuesta baseline produce:
+
+```python
+LLMTestCase(
+    input=question,
+    actual_output=response.content,
+    expected_output=expected_answer,
+    retrieval_context=cached["retrieval_context"],
+)
+```
+
+Los campos permiten evaluar dimensiones diferentes:
+
+```text
+input + actual_output + expected_output
+→ Answer Correctness
+
+actual_output + retrieval_context
+→ Faithfulness
+
+input + retrieval_context
+→ Context Relevance
+
+input + actual_output
+→ Answer Relevance
+```
+
+**Aprendizaje:** un solo caso de prueba contiene las capas necesarias para separar corrección respecto del benchmark, fidelidad respecto de la evidencia y relevancia respecto de la pregunta.
+
+### Objetos producidos por la sección 1.5
+
+| Objeto | Responsabilidad |
+|---|---|
+| `gold_df` | Benchmark completo validado |
+| `optimization_df` | Casos visibles para GEPA |
+| `evaluation_df` | Casos holdout |
+| `benchmark_contexts` | Evidencia congelada por pregunta |
+| `baseline_rows` | Registros detallados del baseline |
+| `baseline_results_df` | Tabla inspeccionable por caso |
+| `baseline_test_cases` | Inputs de DeepEval para la sección 1.7 |
+
+**Conclusión:** la sección 1.5 establece las condiciones de una comparación justa. Su valor principal no es generar una tabla, sino controlar qué ejemplos observa GEPA, qué evidencia recibe cada prompt y qué información queda disponible para explicar los resultados de evaluación.

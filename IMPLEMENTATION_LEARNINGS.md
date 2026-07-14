@@ -1491,3 +1491,269 @@ input + actual_output
 | `baseline_test_cases` | Inputs de DeepEval para la sección 1.7 |
 
 **Conclusión:** la sección 1.5 establece las condiciones de una comparación justa. Su valor principal no es generar una tabla, sino controlar qué ejemplos observa GEPA, qué evidencia recibe cada prompt y qué información queda disponible para explicar los resultados de evaluación.
+
+## Revisión 10 — Métricas de retrieval y generación en la sección 1.6
+
+### La sección 1.6 define el criterio de evaluación
+
+La sección 1.6 no ejecuta todavía el benchmark. Su responsabilidad es definir las métricas que las secciones posteriores aplicarán a los `LLMTestCase` preparados en 1.5.
+
+El flujo es:
+
+```text
+sección 1.5
+→ prepara pregunta, respuesta esperada, respuesta baseline y contexto
+
+sección 1.6
+→ define qué dimensiones de calidad serán medidas
+
+secciones 1.7 y 2.3
+→ ejecutan las métricas sobre baseline y prompt optimizado
+```
+
+`EVALUATION_THRESHOLD = 0.5` es el mínimo que una evaluación individual debe alcanzar para considerarse exitosa. No significa que el 50% de todos los casos deba aprobar; se aplica al score producido por cada métrica para cada caso.
+
+```text
+score >= 0.5 → success = True
+score <  0.5 → success = False
+```
+
+Este umbral es provisional y pedagógico. Un sistema financiero de producción necesitaría calibrarlo con evaluaciones humanas, costos de error y una muestra mayor.
+
+### `GEval` utiliza un LLM como juez
+
+Las métricas de esta sección son objetos `GEval`. Cada una entrega al LLM evaluador:
+
+1. Un criterio escrito en lenguaje natural.
+2. Los campos de `LLMTestCase` necesarios para aplicar ese criterio.
+3. Un umbral para convertir el score en éxito o fracaso.
+
+Por ejemplo:
+
+```python
+evaluation_params=[
+    SingleTurnParams.INPUT,
+    SingleTurnParams.ACTUAL_OUTPUT,
+    SingleTurnParams.EXPECTED_OUTPUT,
+]
+```
+
+indica que el juez puede observar la pregunta, la respuesta generada y la respuesta esperada. No recibe automáticamente todos los campos: cada métrica ve solamente los parámetros declarados.
+
+**Aprendizaje:** `GEval` aporta una evaluación semántica flexible, pero no es completamente determinista. Dos ejecuciones pueden producir scores ligeramente diferentes aunque reciban los mismos inputs. Por eso debe complementarse con verificaciones Python y no interpretarse como una verdad exacta.
+
+### Cada métrica observa una dimensión diferente
+
+| Métrica | Inputs principales | Pregunta que intenta responder | Capa principal |
+|---|---|---|---|
+| Answer Correctness | pregunta, respuesta generada, respuesta esperada | ¿La respuesta coincide con lo que el benchmark considera correcto? | Generación |
+| Faithfulness / Groundedness | respuesta generada, contexto recuperado | ¿Las afirmaciones están respaldadas por la evidencia entregada? | Generación respecto de retrieval |
+| Context Relevance | pregunta, contexto recuperado | ¿Los documentos parecen relevantes y suficientes para responder? | Retrieval |
+| Answer Relevance | pregunta, respuesta generada | ¿La respuesta contesta directamente y evita información innecesaria? | Generación |
+| Broker Actionability | pregunta, respuesta generada, contexto | ¿La respuesta explica señales, riesgos e implicaciones útiles para un broker? | Generación y objetivo de producto |
+
+Una respuesta puede comportarse de forma diferente en cada dimensión:
+
+```text
+respuesta coincide con el benchmark
+pero incluye un dato ausente del contexto
+→ Correctness alta, Faithfulness baja
+
+respuesta se limita correctamente al contexto disponible
+pero el retriever no encontró la evidencia esperada
+→ Faithfulness alta, Correctness posiblemente baja
+
+respuesta correcta y respaldada
+pero extensa y poco directa
+→ Correctness y Faithfulness altas, Answer Relevance baja
+```
+
+**Aprendizaje:** una sola puntuación no permite diagnosticar un RAG. Separar las dimensiones ayuda a identificar si el problema está en retrieval, grounding, redacción o utilidad para el usuario.
+
+### Cómo funciona `Context Relevance`
+
+`Context Relevance` recibe solamente:
+
+```text
+INPUT             → pregunta
+RETRIEVAL_CONTEXT → documentos recuperados
+```
+
+El LLM juez inspecciona ambos y estima:
+
+- Si los documentos hablan del tema solicitado.
+- Si incluyen las entidades, periodos o hechos relevantes.
+- Si aparentan contener evidencia suficiente para construir la respuesta.
+
+Ejemplo de contexto relevante y suficiente:
+
+```text
+Pregunta:
+¿Cuál fue el precio de AAPL el 12 de marzo de 2026?
+
+Contexto:
+AAPL cerró en $215 el 12 de marzo de 2026.
+```
+
+Ejemplo relevante pero insuficiente:
+
+```text
+Pregunta:
+¿Cómo cambió el precio de AAPL entre el 12 y el 13 de marzo?
+
+Contexto:
+Solo contiene el precio del 12 de marzo.
+```
+
+En el segundo caso, el documento está relacionado con la pregunta, pero falta uno de los valores necesarios para calcular o explicar el cambio.
+
+### `Context Relevance` no demuestra por sí sola la calidad del retriever
+
+El LLM juez puede estimar si el contexto parece útil, pero no observa toda la colección Chroma. Por lo tanto, no puede determinar:
+
+- Si existía un documento mejor que no apareció en el `top-k`.
+- Si el resultado correcto quedó en la posición `k + 1`.
+- Si el ranking fue óptimo.
+- Si ticker, fecha, formulario o página coinciden exactamente.
+- Si el corpus original contiene la respuesta.
+
+Por eso se conserva también `retrieval_quality()` en la sección 1.5, con comprobaciones como:
+
+```text
+source_match
+ticker_match
+date_match
+coverage_status
+```
+
+En un benchmark con documentos relevantes etiquetados también podrían calcularse métricas deterministas como:
+
+```text
+Hit Rate@k
+Recall@k
+Precision@k
+MRR
+nDCG
+```
+
+**Aprendizaje:** `Context Relevance` es una señal semántica útil, no un reemplazo de las métricas clásicas de information retrieval ni de los controles de metadata.
+
+### Retrieval y generación deben evaluarse por separado
+
+La primera versión agrupaba las cinco métricas bajo el nombre `baseline_metrics`. Ese nombre era ambiguo porque mezclaba una métrica del retriever con cuatro métricas que pueden cambiar al modificar el prompt.
+
+La versión revisada separa explícitamente:
+
+```python
+retrieval_metrics = [
+    context_relevance_metric,
+]
+
+prompt_evaluation_metrics = [
+    correctness_metric,
+    faithfulness_metric,
+    answer_relevance_metric,
+    broker_actionability_metric,
+]
+
+rag_evaluation_metrics = (
+    retrieval_metrics + prompt_evaluation_metrics
+)
+```
+
+La lista combinada describe la evaluación completa del RAG, pero no se usa directamente para decidir qué prompt gana.
+
+```text
+evaluación completa del RAG
+├── retrieval_metrics
+│   └── Context Relevance
+└── prompt_evaluation_metrics
+    ├── Answer Correctness
+    ├── Faithfulness / Groundedness
+    ├── Answer Relevance
+    └── Broker Actionability
+```
+
+### El contexto congelado debe evaluarse una sola vez
+
+Baseline y prompt optimizado reciben exactamente el mismo contexto guardado en `benchmark_contexts`. Como `Context Relevance` usa solamente pregunta y contexto, su input no cambia entre los dos prompts.
+
+```text
+misma pregunta + mismo contexto congelado
+→ una sola evaluación de Context Relevance
+
+respuesta baseline
+→ métricas de generación
+
+respuesta optimizada
+→ las mismas métricas de generación
+```
+
+Evaluar `Context Relevance` dos veces podría producir scores diferentes únicamente por variabilidad del LLM juez. Esa diferencia no representaría una mejora ni una regresión del prompt.
+
+**Decisión de diseño:** la sección 1.7 calcula `Context Relevance` una vez por caso holdout y guarda el resultado en `retrieval_evaluation_df`. Baseline y optimizado se comparan por separado mediante `baseline_evaluation_df` y `optimized_evaluation_df`.
+
+### GEPA solo debe optimizar variables que puede controlar
+
+GEPA modifica el prompt de generación. Puede influir en:
+
+- Cómo el modelo interpreta la evidencia.
+- Cuánto se apega al contexto.
+- Qué tan directa resulta la respuesta.
+- Cómo presenta riesgos e implicaciones.
+
+GEPA no modifica:
+
+- Los embeddings.
+- La colección Chroma.
+- El routing por dataset.
+- Los filtros de metadata.
+- El valor de `k`.
+- Los documentos ya congelados.
+
+Por eso la configuración utiliza:
+
+```python
+prompt_optimization_metrics = (
+    prompt_evaluation_metrics.copy()
+)
+```
+
+y no incluye `Context Relevance`.
+
+**Aprendizaje:** un optimizador debe recibir objetivos que su variable de control pueda afectar. Optimizar un prompt con una métrica exclusiva de retrieval introduce ruido y dificulta interpretar los resultados.
+
+### La comparación ponderada también excluye retrieval
+
+La decisión entre baseline y prompt optimizado usa únicamente métricas de generación:
+
+```python
+METRIC_WEIGHTS = {
+    "Answer Correctness": 0.40,
+    "Faithfulness / Groundedness": 0.30,
+    "Answer Relevance": 0.10,
+    "Broker Actionability": 0.20,
+}
+```
+
+Los pesos suman `1.0`. Correctness y Faithfulness reciben mayor importancia porque un error factual o una afirmación no respaldada tiene más costo que una pequeña diferencia de estilo.
+
+`Context Relevance` se reporta junto con los diagnósticos del retriever, pero no aporta puntos a ninguno de los prompts porque ambos recibieron la misma evidencia.
+
+### Organización final del protocolo
+
+```text
+1.5  preparar benchmark, holdout y contextos congelados
+ ↓
+1.6  definir métricas separadas de retrieval y generación
+ ↓
+1.7  evaluar retrieval una vez y establecer el baseline
+ ↓
+2.2  optimizar el prompt con métricas controlables por GEPA
+ ↓
+2.3  evaluar el prompt optimizado con las mismas métricas de generación
+ ↓
+2.4  comparar prompts sin atribuirles cambios del retriever
+```
+
+**Conclusión:** la sección 1.6 establece un contrato de evaluación por capas. `Context Relevance` ayuda a diagnosticar la evidencia recuperada; las otras cuatro métricas permiten comparar el comportamiento del generador. Mantener esas responsabilidades separadas produce un experimento más justo, interpretable y reproducible.

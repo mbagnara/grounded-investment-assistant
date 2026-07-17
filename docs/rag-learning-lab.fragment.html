@@ -1,0 +1,741 @@
+<div id="rag-learning-lab">
+  <style>
+    #rag-learning-lab {
+      --lab-bg: #f6f7fb;
+      --lab-panel: #ffffff;
+      --lab-text: #172033;
+      --lab-muted: #5d687b;
+      --lab-border: #dce1ea;
+      --lab-primary: #2457d6;
+      --lab-primary-soft: #e9efff;
+      --lab-accent: #0c7c68;
+      --lab-accent-soft: #e1f4ef;
+      --lab-warning: #9a5a00;
+      --lab-warning-soft: #fff2d8;
+      --lab-code: #111827;
+      --lab-code-text: #e7edf7;
+      color: var(--lab-text);
+      background: var(--lab-bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+      min-height: 100%;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      #rag-learning-lab {
+        --lab-bg: #0f1420;
+        --lab-panel: #171e2c;
+        --lab-text: #edf1f7;
+        --lab-muted: #aab4c5;
+        --lab-border: #313b4d;
+        --lab-primary: #8aa8ff;
+        --lab-primary-soft: #22325b;
+        --lab-accent: #66d5bf;
+        --lab-accent-soft: #183d37;
+        --lab-warning: #f0bd68;
+        --lab-warning-soft: #483719;
+        --lab-code: #090d15;
+        --lab-code-text: #e7edf7;
+      }
+    }
+
+    #rag-learning-lab * { box-sizing: border-box; }
+    #rag-learning-lab button,
+    #rag-learning-lab select,
+    #rag-learning-lab input { font: inherit; }
+    #rag-learning-lab button { cursor: pointer; }
+    #rag-learning-lab button:focus-visible,
+    #rag-learning-lab select:focus-visible,
+    #rag-learning-lab input:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--lab-primary) 45%, transparent);
+      outline-offset: 2px;
+    }
+
+    .lab-shell { max-width: 1180px; margin: 0 auto; padding: 28px 20px 48px; }
+    .lab-hero { display: grid; gap: 12px; margin-bottom: 24px; }
+    .lab-eyebrow { color: var(--lab-primary); font-weight: 500; letter-spacing: .06em; text-transform: uppercase; font-size: .78rem; }
+    .lab-hero h1 { margin: 0; font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.08; font-weight: 500; }
+    .lab-hero p { margin: 0; color: var(--lab-muted); max-width: 780px; }
+    .lab-progress-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .lab-progress-track { flex: 1 1 280px; height: 8px; background: var(--lab-border); border-radius: 999px; overflow: hidden; }
+    .lab-progress-fill { height: 100%; width: 0; background: var(--lab-accent); transition: width .25s ease; }
+    .lab-progress-label { color: var(--lab-muted); font-size: .9rem; }
+
+    .lab-pipeline { display: grid; grid-template-columns: repeat(8, minmax(105px, 1fr)); gap: 8px; margin-bottom: 24px; overflow-x: auto; padding: 2px; }
+    .lab-stage {
+      border: 1px solid var(--lab-border);
+      background: var(--lab-panel);
+      color: var(--lab-text);
+      border-radius: 12px;
+      padding: 10px 8px;
+      min-height: 64px;
+      text-align: left;
+      display: grid;
+      align-content: center;
+      gap: 2px;
+    }
+    .lab-stage span { color: var(--lab-muted); font-size: .75rem; }
+    .lab-stage strong { font-size: .86rem; font-weight: 500; }
+    .lab-stage[aria-pressed="true"] { border-color: var(--lab-primary); background: var(--lab-primary-soft); }
+    .lab-stage.is-complete strong::after { content: "  ✓"; color: var(--lab-accent); }
+
+    .lab-panel { background: var(--lab-panel); border: 1px solid var(--lab-border); border-radius: 18px; padding: clamp(18px, 3vw, 32px); }
+    .lab-panel[hidden] { display: none; }
+    .lab-panel-head { display: grid; gap: 6px; margin-bottom: 22px; }
+    .lab-panel-head h2 { margin: 0; font-size: clamp(1.35rem, 2.8vw, 2rem); font-weight: 500; }
+    .lab-panel-head p { margin: 0; color: var(--lab-muted); max-width: 800px; }
+    .lab-section-ref { color: var(--lab-primary); font-size: .82rem; font-weight: 500; }
+
+    .lab-controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; align-items: end; }
+    .lab-button {
+      border: 1px solid var(--lab-border);
+      color: var(--lab-text);
+      background: var(--lab-panel);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .lab-button[aria-pressed="true"], .lab-button.is-active { background: var(--lab-primary); color: #fff; border-color: var(--lab-primary); }
+    @media (prefers-color-scheme: dark) {
+      .lab-button[aria-pressed="true"], .lab-button.is-active { color: #101725; }
+    }
+    .lab-button-secondary { background: var(--lab-primary-soft); border-color: color-mix(in srgb, var(--lab-primary) 35%, var(--lab-border)); }
+    .lab-field { display: grid; gap: 5px; min-width: min(100%, 220px); }
+    .lab-field label { color: var(--lab-muted); font-size: .84rem; }
+    .lab-select, .lab-range {
+      width: 100%;
+      border: 1px solid var(--lab-border);
+      background: var(--lab-panel);
+      color: var(--lab-text);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    .lab-range { padding: 6px 0; }
+
+    .lab-grid-2, .lab-grid-3 { display: grid; gap: 16px; }
+    .lab-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lab-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .lab-block { min-width: 0; }
+    .lab-block h3 { margin: 0 0 8px; font-size: 1rem; font-weight: 500; }
+    .lab-block p { margin: 0; color: var(--lab-muted); }
+    .lab-card { border: 1px solid var(--lab-border); border-radius: 14px; padding: 16px; background: var(--lab-panel); }
+    .lab-card strong { font-weight: 500; }
+    .lab-callout { border-left: 4px solid var(--lab-accent); padding: 10px 14px; background: var(--lab-accent-soft); margin: 18px 0; }
+    .lab-warning { border-left-color: var(--lab-warning); background: var(--lab-warning-soft); }
+    .lab-callout p { margin: 0; }
+
+    .lab-code { background: var(--lab-code); color: var(--lab-code-text); border-radius: 12px; padding: 14px; overflow-wrap: anywhere; white-space: pre-wrap; margin: 0; font: 0.86rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .lab-label { display: inline-flex; align-items: center; border: 1px solid var(--lab-border); border-radius: 999px; padding: 3px 8px; font-size: .78rem; color: var(--lab-muted); margin: 2px 4px 2px 0; }
+    .lab-label.is-exact { background: var(--lab-primary-soft); color: var(--lab-text); }
+    .lab-label.is-semantic { background: var(--lab-accent-soft); color: var(--lab-text); }
+    .lab-arrow { color: var(--lab-muted); font-size: 1.25rem; align-self: center; justify-self: center; }
+
+    .lab-doc-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: stretch; }
+    .lab-doc-flow .lab-card { overflow: hidden; }
+    .lab-doc-flow pre { max-height: 340px; overflow: auto; }
+
+    .lab-chunk-list { display: grid; gap: 10px; margin-top: 16px; }
+    .lab-chunk { position: relative; border-left: 6px solid var(--lab-primary); background: var(--lab-primary-soft); padding: 12px 14px; border-radius: 8px; }
+    .lab-chunk:nth-child(even) { border-left-color: var(--lab-accent); background: var(--lab-accent-soft); }
+    .lab-chunk-head { display: flex; justify-content: space-between; gap: 8px; color: var(--lab-muted); font-size: .8rem; margin-bottom: 5px; }
+
+    .lab-flowline { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+    .lab-flowstep { border-top: 4px solid var(--lab-border); padding-top: 10px; }
+    .lab-flowstep.is-active { border-top-color: var(--lab-primary); }
+    .lab-flowstep strong { display: block; font-weight: 500; margin-bottom: 4px; }
+    .lab-flowstep span { color: var(--lab-muted); font-size: .84rem; }
+
+    .lab-retrieval-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 18px; }
+    .lab-result-list { display: grid; gap: 8px; }
+    .lab-result { border: 1px solid var(--lab-border); border-radius: 10px; padding: 10px 12px; }
+    .lab-result small { color: var(--lab-muted); }
+
+    .lab-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .lab-tab-content { min-height: 240px; }
+    .lab-evidence-list { display: grid; gap: 10px; }
+
+    .lab-split { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; }
+    .lab-case-dots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .lab-dot { width: 28px; height: 28px; display: inline-grid; place-items: center; border-radius: 50%; background: var(--lab-primary-soft); color: var(--lab-text); font-size: .75rem; }
+    .lab-dot.holdout { background: var(--lab-accent-soft); }
+
+    .lab-metric-list { display: grid; gap: 8px; }
+    .lab-metric-button { text-align: left; width: 100%; }
+    .lab-metric-button span { display: block; color: var(--lab-muted); font-size: .8rem; }
+    .lab-metric-detail { min-height: 260px; }
+
+    .lab-config-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .lab-config-table th, .lab-config-table td { border-bottom: 1px solid var(--lab-border); padding: 8px 6px; text-align: left; vertical-align: top; }
+    .lab-config-table th { color: var(--lab-muted); font-weight: 500; font-size: .82rem; }
+
+    .lab-matrix-wrap { overflow-x: auto; }
+    .lab-matrix { border-collapse: separate; border-spacing: 6px; min-width: 760px; width: 100%; }
+    .lab-matrix th { color: var(--lab-muted); font-weight: 500; font-size: .8rem; text-align: center; }
+    .lab-matrix th:first-child { text-align: left; }
+    .lab-matrix td:first-child { font-size: .82rem; }
+    .lab-matrix button { width: 100%; min-height: 42px; border: 1px solid var(--lab-border); background: var(--lab-panel); color: var(--lab-text); border-radius: 9px; }
+    .lab-matrix button[aria-pressed="true"] { background: var(--lab-primary-soft); border-color: var(--lab-primary); }
+
+    .lab-check { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--lab-border); }
+    .lab-check h3 { margin: 0 0 6px; font-size: 1rem; font-weight: 500; }
+    .lab-check p { margin: 0 0 10px; }
+    .lab-check-options { display: flex; flex-wrap: wrap; gap: 8px; }
+    .lab-feedback { margin-top: 10px; min-height: 24px; color: var(--lab-muted); }
+    .lab-feedback.is-correct { color: var(--lab-accent); }
+    .lab-feedback.is-wrong { color: var(--lab-warning); }
+
+    .lab-footer-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+
+    @media (max-width: 820px) {
+      .lab-grid-3, .lab-doc-flow { grid-template-columns: 1fr; }
+      .lab-doc-flow .lab-arrow { transform: rotate(90deg); }
+      .lab-retrieval-layout, .lab-grid-2 { grid-template-columns: 1fr; }
+      .lab-pipeline { grid-template-columns: repeat(8, 132px); }
+    }
+
+    @media (max-width: 520px) {
+      .lab-shell { padding: 18px 12px 34px; }
+      .lab-panel { border-radius: 12px; padding: 16px; }
+      .lab-split { grid-template-columns: 1fr; }
+      .lab-footer-nav { flex-direction: column; }
+      .lab-footer-nav .lab-button { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .lab-progress-fill { transition: none; }
+    }
+  </style>
+
+  <div class="lab-shell">
+    <header class="lab-hero">
+      <span class="lab-eyebrow">UTAIGA Project 2 · Interactive learning path</span>
+      <h1>Grounded Investment Assistant: RAG Learning Lab</h1>
+      <p>Recorre el pipeline de Full Code Notebook v3 desde los archivos originales hasta la evaluación de los cinco casos oficiales. Cada etapa conecta teoría, código y una decisión observable.</p>
+      <div class="lab-progress-row">
+        <div class="lab-progress-track" aria-hidden="true"><div class="lab-progress-fill" id="lab-progress-fill"></div></div>
+        <span class="lab-progress-label" id="lab-progress-label">0 de 8 conceptos comprobados</span>
+      </div>
+    </header>
+
+    <nav class="lab-pipeline" aria-label="Módulos del laboratorio" id="lab-module-nav"></nav>
+
+    <main>
+      <section class="lab-panel" data-panel="documents" aria-labelledby="documents-title">
+        <div class="lab-panel-head">
+          <span class="lab-section-ref">Notebook 1.1–1.2</span>
+          <h2 id="documents-title">De raw data a LangChain Document</h2>
+          <p>Observa cómo cada fuente produce unidades recuperables con contenido semántico y metadata exacta.</p>
+        </div>
+        <div class="lab-controls" id="source-controls"></div>
+        <div class="lab-doc-flow" aria-live="polite">
+          <div class="lab-card lab-block"><h3>1 · Registro original</h3><pre class="lab-code" id="raw-record"></pre></div>
+          <div class="lab-arrow" aria-hidden="true">→</div>
+          <div class="lab-card lab-block"><h3>2 · Document</h3><pre class="lab-code" id="document-record"></pre></div>
+          <div class="lab-arrow" aria-hidden="true">→</div>
+          <div class="lab-card lab-block"><h3>3 · Uso en RAG</h3><div id="document-uses"></div></div>
+        </div>
+        <div class="lab-callout"><p><strong>Regla:</strong> <code>page_content</code> se convierte en embedding; <code>metadata</code> permite filtros, trazabilidad y citas.</p></div>
+      </section>
+
+      <section class="lab-panel" data-panel="chunking" aria-labelledby="chunking-title" hidden>
+        <div class="lab-panel-head">
+          <span class="lab-section-ref">Notebook 1.2</span>
+          <h2 id="chunking-title">Laboratorio de chunking</h2>
+          <p>Ajusta tamaño y overlap para observar el balance entre contexto, precisión y duplicación.</p>
+        </div>
+        <div class="lab-controls">
+          <div class="lab-field">
+            <label for="chunk-size">Chunk size: <strong id="chunk-size-value">1000</strong> caracteres</label>
+            <input class="lab-range" id="chunk-size" type="range" min="500" max="1400" step="100" value="1000">
+          </div>
+          <div class="lab-field">
+            <label for="chunk-overlap">Overlap: <strong id="chunk-overlap-value">200</strong> caracteres</label>
+            <input class="lab-range" id="chunk-overlap" type="range" min="0" max="400" step="50" value="200">
+          </div>
+        </div>
+        <div class="lab-grid-3">
+          <div class="lab-card"><strong id="chunk-count">0</strong><p>chunks resultantes</p></div>
+          <div class="lab-card"><strong id="chunk-shared">0</strong><p>caracteres repetidos por frontera</p></div>
+          <div class="lab-card"><strong>Page 12</strong><p>provenance heredada por cada chunk</p></div>
+        </div>
+        <div class="lab-chunk-list" id="chunk-list"></div>
+        <div class="lab-callout lab-warning"><p>El notebook usa caracteres, no tokens. Más overlap conserva continuidad, pero también aumenta duplicación y costo de indexación.</p></div>
+      </section>
+
+      <section class="lab-panel" data-panel="chroma" aria-labelledby="chroma-title" hidden>
+        <div class="lab-panel-head">
+          <span class="lab-section-ref">Notebook 1.3</span>
+          <h2 id="chroma-title">Embeddings, IDs y una colección Chroma</h2>
+          <p>Sigue las tres partes de un documento: texto vectorizado, metadata filtrable e identidad reproducible.</p>
+        </div>
+        <div class="lab-controls" id="embedding-controls"></div>
+        <div class="lab-flowline" role="img" aria-label="Flujo de un documento hacia Chroma">
+          <div class="lab-flowstep is-active"><strong>Document</strong><span id="embed-doc-label"></span></div>
+          <div class="lab-flowstep is-active"><strong>page_content</strong><span>Entrada a text-embedding-3-small</span></div>
+          <div class="lab-flowstep is-active"><strong>Embedding</strong><span>Representación semántica comparable</span></div>
+          <div class="lab-flowstep is-active"><strong>Metadata + SHA-256</strong><span>Filtros e identidad determinista</span></div>
+          <div class="lab-flowstep is-active"><strong>Chroma</strong><span>investment_rag_v2</span></div>
+        </div>
+        <div class="lab-grid-2" style="margin-top:18px">
+          <div class="lab-card lab-block"><h3>Contenido embebido</h3><pre class="lab-code" id="embed-content"></pre></div>
+          <div class="lab-card lab-block"><h3>Metadata no embebida</h3><pre class="lab-code" id="embed-metadata"></pre></div>
+        </div>
+        <div class="lab-callout"><p>Una colección permite búsquedas cruzadas. El campo <code>dataset</code> mantiene la capacidad de limitar cada búsqueda a la fuente correcta.</p></div>
+      </section>
+
+      <section class="lab-panel" data-panel="retrieval" aria-labelledby="retrieval-title" hidden>
+        <div class="lab-panel-head">
+          <span class="lab-section-ref">Notebook 1.4</span>
+          <h2 id="retrieval-title">Router, filtros exactos y búsqueda semántica</h2>
+          <p>Selecciona una pregunta y observa cómo se transforma en un plan de recuperación verificable.</p>
+        </div>
+        <div class="lab-controls">
+          <div class="lab-field" style="flex:1 1 420px">
+            <label for="retrieval-case">Pregunta</label>
+            <select class="lab-select" id="retrieval-case"></select>
+          </div>
+          <label class="lab-field" id="fallback-wrap">
+            <span>Simulación</span>
+            <span><input id="fallback-toggle" type="checkbox"> La fecha exacta no existe</span>
+          </label>
+        </div>
+        <div class="lab-flowline" aria-label="Etapas del retrieval">
+          <div class="lab-flowstep is-active"><strong>1 · Route</strong><span id="route-datasets"></span></div>
+          <div class="lab-flowstep is-active"><strong>2 · Constraints</strong><span id="route-constraints"></span></div>
+          <div class="lab-flowstep is-active"><strong>3 · Exact filter</strong><span>Metadata limita candidatos</span></div>
+          <div class="lab-flowstep is-active"><strong>4 · Semantic search</strong><span>Embeddings ordenan candidatos</span></div>
+          <div class="lab-flowstep is-active"><strong>5 · Top-k</strong><span id="route-topk"></span></div>
+        </div>
+        <div class="lab-retrieval-layout" style="margin-top:18px">
+          <div class="lab-card lab-block"><h3>Filtro Chroma</h3><pre class="lab-code" id="route-filter"></pre><div id="route-tags" style="margin-top:10px"></div></div>
+          <div class="lab-card lab-block"><h3>Resultados semánticos dentro del subconjunto</h3><div class="lab-result-list" id="route-results"></div></div>
+        </div>
+        <div class="lab-callout" id="fallback-note"><p><strong>Metadata decide quién puede competir.</strong> Los embeddings deciden cuáles documentos ganan.</p></div>
+      </section>
+
+      <section class="lab-panel" data-panel="context" aria-labelledby="context-title" hidden>
+        <div class="lab-panel-head">
+          <span class="lab-section-ref">Notebook 1.4</span>
+          <h2 id="context-title">De documentos recuperados a respuesta grounded</h2>
+          <p>Inspecciona cada representación que atraviesa el pipeline antes de llegar al modelo.</p>
+        </div>
+        <div class="lab-tabs" id="context-tabs">
+          <button class="lab-button is-active" data-context-tab="documents" aria-pressed="true">Documents</button>
+          <button class="lab-button" data-context-tab="formatted" aria-pressed="false">Formatted context</button>
+          <button class="lab-button" data-context-tab="prompt" aria-pressed="false">Prompt</button>
+          <button class="lab-button" data-context-tab="answer" aria-pressed="false">Answer</button>
+        </div>
+        <div class="lab-tab-content lab-card" id="context-content" aria-live="polite"></div>
+        <div class="lab-callout"><p><code>format_source_metadata()</code> crea etiquetas legibles; <code>format_retrieved_context()</code> numera la evidencia e incorpora la fecha de corte.</p></div>
+      </section>
+
+      <section class="lab-panel" data-panel="evaluation" aria-labelledby="evaluation-title" hidden>
+        <div class="lab-panel-head">
+          <span class="lab-section-ref">Notebook 1.5–1.7</span>
+          <h2 id="evaluation-title">Benchmark, holdout y métricas válidas</h2>
+          <p>Separa el experimento correctamente y distingue entre cobertura estructural, retrieval semántico y calidad de respuesta.</p>
+        </div>
+        <div class="lab-grid-2">
+          <div class="lab-card lab-block">
+            <h3>Source-balanced split</h3>
+            <div class="lab-split">
+              <div><strong>Optimization</strong><p>GEPA puede aprender de estos casos.</p><div class="lab-case-dots" id="optimization-dots"></div></div>
+              <div><strong>Holdout</strong><p>Comparación final de prompts.</p><div class="lab-case-dots" id="holdout-dots"></div></div>
+            </div>
+          </div>
+          <div class="lab-card lab-block">
+            <h3>Contexto congelado</h3>
+            <pre class="lab-code">Question
+   ↓ retrieve once
+Frozen context
+  ↙           ↘
+Baseline    Optimized
+
+Same evidence → fair prompt comparison</pre>
+          </div>
+        </div>
+        <div class="lab-grid-2" style="margin-top:18px">
+          <div class="lab-metric-list" id="metric-list"></div>
+          <div class="lab-card lab-metric-detail" id="metric-detail"></div>
+        </div>
+        <div class="lab-callout"><p><code>retrieval_quality()</code> comprueba metadata de manera determinista. <code>Context Relevance</code> juzga relevancia y suficiencia semántica.</p></div>
+      </section>
+
+      <section class="lab-panel" data-panel="optimization" aria-labelledby="optimization-title" hidden>
+        <div class="lab-panel-head">
+          <span class="lab-section-ref">Notebook 2.1–3.7</span>
+          <h2 id="optimization-title">GEPA, quality gates y configuración RAG</h2>
+          <p>GEPA propone un prompt; los quality gates deciden si se aprueba. Después se comparan tres hipótesis completas de RAG.</p>
+        </div>
+        <div class="lab-flowline" aria-label="Ciclo de optimización GEPA">
+          <div class="lab-flowstep is-active"><strong>Seed prompt</strong><span>Punto de partida</span></div>
+          <div class="lab-flowstep is-active"><strong>Mutations</strong><span>Candidatos generados</span></div>
+          <div class="lab-flowstep is-active"><strong>Optimization cases</strong><span>Scoring iterativo</span></div>
+          <div class="lab-flowstep is-active"><strong>Pareto selection</strong><span>Balance entre métricas</span></div>
+          <div class="lab-flowstep is-active"><strong>Holdout + gates</strong><span>Aprobar o rechazar</span></div>
+        </div>
+        <div class="lab-callout lab-warning"><p>GEPA modifica el prompt, no el retriever. Los resultados de v3 aparecerán solamente después de ejecutar el notebook.</p></div>
+        <div class="lab-controls" id="config-controls"></div>
+        <div class="lab-grid-2">
+          <div class="lab-card lab-block"><h3 id="config-title"></h3><p id="config-rationale"></p><table class="lab-config-table" id="config-table"></table></div>
+          <div class="lab-card lab-block"><h3>Quality policy</h3><table class="lab-config-table"><tbody><tr><th>Weighted gain</th><td>≥ baseline + 0.01</td></tr><tr><th>Correctness regression</th><td>≤ 0.02 tolerated</td></tr><tr><th>Faithfulness regression</th><td>≤ 0.02 tolerated</td></tr><tr><th>Success rate</th><td>No regression</td></tr><tr><th>Errors</th><td>No additional errors</td></tr></tbody></table><p style="margin-top:12px;color:var(--lab-muted)">Estado actual: pendiente de ejecutar v3.</p></div>
+        </div>
+      </section>
+
+      <section class="lab-panel" data-panel="official" aria-labelledby="official-title" hidden>
+        <div class="lab-panel-head">
+          <span class="lab-section-ref">Notebook 4.1–4.3</span>
+          <h2 id="official-title">Cinco casos oficiales × cuatro pipelines</h2>
+          <p>Explora el diseño de la evaluación final. Las respuestas y métricas permanecen pendientes hasta ejecutar v3.</p>
+        </div>
+        <div class="lab-grid-3" style="margin-bottom:18px">
+          <div class="lab-card"><strong>5</strong><p>preguntas oficiales</p></div>
+          <div class="lab-card"><strong>20</strong><p>respuestas: 5 × 4 pipelines</p></div>
+          <div class="lab-card"><strong>80</strong><p>evaluaciones: 20 × 4 métricas</p></div>
+        </div>
+        <div class="lab-matrix-wrap"><table class="lab-matrix" id="official-matrix"></table></div>
+        <div class="lab-card" id="official-detail" style="margin-top:16px"></div>
+        <div class="lab-callout lab-warning"><p>Answer Correctness no se calcula porque estos cinco casos no incluyen una respuesta humana de referencia.</p></div>
+      </section>
+
+      <section class="lab-check" aria-labelledby="knowledge-check-title">
+        <h3 id="knowledge-check-title">Comprobación rápida</h3>
+        <p id="check-question"></p>
+        <div class="lab-check-options" id="check-options"></div>
+        <div class="lab-feedback" id="check-feedback" aria-live="polite"></div>
+      </section>
+
+      <div class="lab-footer-nav">
+        <button class="lab-button" id="previous-module">← Anterior</button>
+        <button class="lab-button lab-button-secondary" id="next-module">Siguiente →</button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const root = document.getElementById("rag-learning-lab");
+      if (!root) return;
+
+      const modules = [
+        { id: "documents", section: "1.1–1.2", short: "Documents" },
+        { id: "chunking", section: "1.2", short: "Chunking" },
+        { id: "chroma", section: "1.3", short: "Chroma" },
+        { id: "retrieval", section: "1.4", short: "Retrieval" },
+        { id: "context", section: "1.4", short: "Context" },
+        { id: "evaluation", section: "1.5–1.7", short: "Evaluation" },
+        { id: "optimization", section: "2–3", short: "GEPA + tuning" },
+        { id: "official", section: "4", short: "Official tests" }
+      ];
+
+      const sourceExamples = {
+        prices: {
+          label: "Stock prices CSV",
+          raw: { price_summary: "Date is 2025-04-28, ticker is AAPL, name is Apple Inc., close is 199.25" },
+          document: {
+            page_content: "Date is 2025-04-28, ticker is AAPL, name is Apple Inc., close is 199.25",
+            metadata: { dataset: "stock_price_details", source_file: "stock_price_details.csv", row_id: 42, ticker: "AAPL", date: "2025-04-28", name: "Apple Inc." }
+          },
+          uses: [["Embedding", "Full price summary"], ["Exact filters", "dataset, ticker, date"], ["Traceability", "source_file, row_id"]]
+        },
+        news: {
+          label: "Global news CSV",
+          raw: { title: "Amazon expands AI infrastructure", published_at: "2025-04-28", source: "Reuters", description: "New investment in AI capacity", content: "Amazon announced additional data-center capacity..." },
+          document: {
+            page_content: "Title: Amazon expands AI infrastructure\nPublished at: 2025-04-28\nSource: Reuters\n\nDescription: New investment in AI capacity\n\nContent: Amazon announced additional data-center capacity...",
+            metadata: { dataset: "global_news", source_file: "global_news.csv", row_id: 15, title: "Amazon expands AI infrastructure", source: "Reuters", published_at: "2025-04-28" }
+          },
+          uses: [["Embedding", "Title + description + content"], ["Exact filters", "dataset"], ["Citation", "title, source, published_at, row_id"]]
+        },
+        filing: {
+          label: "SEC filing PDF",
+          raw: { page: 12, extracted_text: "Management evaluates disclosure controls and internal control over financial reporting..." },
+          document: {
+            page_content: "Management evaluates disclosure controls and internal control over financial reporting...",
+            metadata: { dataset: "sec_filings", source_file: "sec_filings_10q.pdf", document_type: "10-Q", page: 12, chunk_id: 47 }
+          },
+          uses: [["Embedding", "Chunk text"], ["Exact filters", "dataset"], ["Traceability", "source_file, page, chunk_id"]]
+        }
+      };
+
+      const filingText = (`Management's Discussion and Analysis explains changes in revenue, operating expenses, liquidity, and risk factors. The company evaluates disclosure controls and procedures and reports whether internal control over financial reporting remains effective. Material changes, market uncertainty, supply-chain exposure, foreign-exchange movements, and competitive pressure may affect future results. `).repeat(8);
+
+      const retrievalCases = [
+        {
+          id: "price-date",
+          question: "What was Apple's stock price on 2025-04-28?",
+          datasets: ["stock_price_details"], tickers: ["AAPL"], dates: ["2025-04-28"], k: 5,
+          exactFilter: { "$and": [{ dataset: { "$eq": "stock_price_details" } }, { ticker: { "$eq": "AAPL" } }, { date: { "$eq": "2025-04-28" } }] },
+          fallbackFilter: { "$and": [{ dataset: { "$eq": "stock_price_details" } }, { ticker: { "$eq": "AAPL" } }] },
+          results: ["AAPL close 199.25 on 2025-04-28", "AAPL daily range and volume", "AAPL neighboring trading session"],
+          fallbackResults: ["AAPL close on 2025-04-25", "AAPL close on 2025-04-29", "AAPL recent trend summary"]
+        },
+        {
+          id: "news-price",
+          question: "Does recent Amazon news sentiment agree with its stock performance?",
+          datasets: ["stock_price_details", "global_news"], tickers: ["AMZN"], dates: [], k: 5,
+          exactFilter: { dataset: { "$in": ["stock_price_details", "global_news"] } },
+          results: ["Amazon AI infrastructure announcement", "AMZN recent price movement", "Amazon market sentiment summary"]
+        },
+        {
+          id: "filing-risk",
+          question: "What risks appear in Apple's latest 10-Q filing?",
+          datasets: ["sec_filings"], tickers: ["AAPL"], dates: [], k: 5,
+          exactFilter: { dataset: { "$eq": "sec_filings" } },
+          results: ["10-Q risk factors chunk", "Liquidity and market risk section", "Internal control disclosure"]
+        },
+        {
+          id: "multi-company",
+          question: "Out of Google, Amazon, and Apple, which is the best bet for AI?",
+          datasets: ["global_news", "stock_price_details", "sec_filings"], tickers: ["AAPL", "AMZN", "GOOGL"], dates: [], k: 7,
+          exactFilter: { dataset: { "$in": ["global_news", "stock_price_details", "sec_filings"] } },
+          results: ["Alphabet AI-related news", "Amazon price and filing evidence", "Apple AI news and financial risk"]
+        },
+        {
+          id: "ambiguous",
+          question: "Tell me everything relevant about Apple.",
+          datasets: ["global_news", "stock_price_details", "sec_filings"], tickers: ["AAPL"], dates: [], k: 5,
+          exactFilter: { dataset: { "$in": ["global_news", "stock_price_details", "sec_filings"] } },
+          results: ["Apple recent news", "AAPL price record", "Apple filing excerpt"]
+        }
+      ];
+
+      const metrics = [
+        { name: "Context Relevance", owner: "Retriever", question: "¿El contexto recuperado es relevante y suficiente?", fields: ["input", "retrieval_context"], reference: false, failure: "El dataset correcto aparece, pero los chunks no contienen evidencia suficiente." },
+        { name: "Answer Correctness", owner: "Generator", question: "¿La respuesta coincide con la respuesta esperada?", fields: ["input", "actual_output", "expected_output"], reference: true, failure: "La respuesta es grounded, pero reporta una cifra distinta de la referencia." },
+        { name: "Faithfulness / Groundedness", owner: "Generator", question: "¿Cada afirmación está respaldada por el contexto?", fields: ["actual_output", "retrieval_context"], reference: false, failure: "El modelo agrega una explicación que no aparece en las fuentes." },
+        { name: "Answer Relevance", owner: "Generator", question: "¿La respuesta contesta directamente la pregunta?", fields: ["input", "actual_output"], reference: false, failure: "La respuesta usa evidencia correcta, pero se desvía hacia información no solicitada." },
+        { name: "Broker Actionability", owner: "Generator", question: "¿La respuesta presenta señales, riesgos e implicaciones útiles?", fields: ["input", "actual_output", "retrieval_context"], reference: false, failure: "La respuesta enumera hechos sin explicar su implicación para una conversación con el cliente." }
+      ];
+
+      const configs = {
+        precision: { name: "Config_1_Precision_Focused", rationale: "Prueba si chunks menores y menos documentos reducen ruido en preguntas específicas.", values: { "Chunk size": 700, "Overlap": 100, "Top-k": 4, "Search": "similarity", "Temperature": 0.0, "Top-p": 1.0, "Max tokens": 450 } },
+        balanced: { name: "Config_2_Balanced", rationale: "Referencia equilibrada entre recall, ruido, contexto y longitud de respuesta.", values: { "Chunk size": 1000, "Overlap": 200, "Top-k": 5, "Search": "similarity", "Temperature": 0.0, "Top-p": 1.0, "Max tokens": 500 } },
+        context: { name: "Config_3_Context_Heavy", rationale: "Prueba evidencia más amplia y diversa para preguntas comparativas o de varias partes.", values: { "Chunk size": 1200, "Overlap": 250, "Top-k": 7, "Search": "MMR", "Temperature": 0.1, "Top-p": 0.9, "Max tokens": 650 } }
+      };
+
+      const officialCases = [
+        { id: 1, short: "10-Q comparison", question: "Compare total revenue and net income reported by Apple, Amazon, and Alphabet. Which grew fastest year-over-year?", datasets: ["sec_filings"], entities: ["Apple", "Amazon", "Alphabet"] },
+        { id: 2, short: "Amazon signal", question: "Based on this week's Amazon news sentiment, is the signal bullish or bearish, and does price support it?", datasets: ["global_news", "stock_price_details"], entities: ["Amazon"] },
+        { id: 3, short: "Apple rumor + risk", question: "Should I invest in Apple now? Is the Tim Cook rumor a red flag, and what do price, financials, and risks show?", datasets: ["global_news", "stock_price_details", "sec_filings"], entities: ["Apple", "Tim Cook"] },
+        { id: 4, short: "Bitcoin trend", question: "Is now a good time to buy Bitcoin? What is the recent trend and what is driving the rally?", datasets: ["global_news", "stock_price_details"], entities: ["Bitcoin"] },
+        { id: 5, short: "AI comparison", question: "Out of Google, Amazon, and Apple, which looks strongest for AI based on performance, filings, and news?", datasets: ["global_news", "stock_price_details", "sec_filings"], entities: ["Alphabet", "Amazon", "Apple"] }
+      ];
+
+      const pipelines = ["Baseline", configs.precision.name, configs.balanced.name, configs.context.name];
+
+      const checks = {
+        documents: { question: "¿Qué parte de Document se usa para filtrar exactamente por ticker?", options: ["page_content", "metadata", "embedding"], correct: 1, feedback: "El ticker vive en metadata; page_content se usa para similitud semántica." },
+        chunking: { question: "¿Qué efecto directo tiene aumentar el overlap?", options: ["Más continuidad y más duplicación", "Menos chunks siempre", "Convierte caracteres en tokens"], correct: 0, feedback: "El overlap conserva texto entre fronteras, pero repite contenido." },
+        chroma: { question: "¿Por qué el ID determinista ayuda al notebook?", options: ["Hace el embedding más grande", "Evita identidades aleatorias al reejecutar", "Reemplaza metadata"], correct: 1, feedback: "El mismo contenido y metadata producen la misma identidad reproducible." },
+        retrieval: { question: "Después del filtro de metadata, ¿qué decide el ranking final?", options: ["El número de fila", "La similitud semántica", "El nombre del archivo"], correct: 1, feedback: "Metadata limita candidatos; embeddings ordenan el subconjunto semánticamente." },
+        context: { question: "¿Qué hace format_retrieved_context()?", options: ["Recupera documentos", "Crea embeddings", "Prepara evidencia numerada para el prompt"], correct: 2, feedback: "La función limpia, numera y etiqueta documentos ya recuperados." },
+        evaluation: { question: "¿Qué debe permanecer constante para comparar dos prompts justamente?", options: ["El contexto recuperado", "El texto del prompt", "La respuesta generada"], correct: 0, feedback: "El contexto se congela para aislar el prompt como variable experimental." },
+        optimization: { question: "¿Qué componente modifica GEPA en este proyecto?", options: ["El prompt", "El embedding model", "La raw data"], correct: 0, feedback: "GEPA propone cambios al prompt; el tuning de retrieval ocurre después." },
+        official: { question: "¿Por qué no se calcula Answer Correctness en los cinco casos oficiales?", options: ["Porque son demasiados", "Porque no tienen expected_output humano", "Porque Chroma no devuelve scores"], correct: 1, feedback: "Correctness necesita una respuesta de referencia para comparar." }
+      };
+
+      let activeModule = 0;
+      let completed = new Set();
+      try {
+        const saved = JSON.parse(localStorage.getItem("rag-learning-lab-progress") || "[]");
+        completed = new Set(saved.filter(id => modules.some(module => module.id === id)));
+      } catch (_) {}
+
+      const escapeHTML = value => String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
+      const pretty = value => JSON.stringify(value, null, 2);
+
+      function renderNavigation() {
+        const nav = root.querySelector("#lab-module-nav");
+        nav.innerHTML = modules.map((module, index) => `
+          <button class="lab-stage ${completed.has(module.id) ? "is-complete" : ""}" data-module-index="${index}" aria-pressed="${index === activeModule}">
+            <span>${escapeHTML(module.section)}</span><strong>${escapeHTML(module.short)}</strong>
+          </button>`).join("");
+        nav.querySelectorAll("[data-module-index]").forEach(button => button.addEventListener("click", () => showModule(Number(button.dataset.moduleIndex))));
+      }
+
+      function updateProgress() {
+        const percent = completed.size / modules.length * 100;
+        root.querySelector("#lab-progress-fill").style.width = `${percent}%`;
+        root.querySelector("#lab-progress-label").textContent = `${completed.size} de ${modules.length} conceptos comprobados`;
+      }
+
+      function showModule(index) {
+        activeModule = Math.max(0, Math.min(modules.length - 1, index));
+        const id = modules[activeModule].id;
+        root.querySelectorAll("[data-panel]").forEach(panel => { panel.hidden = panel.dataset.panel !== id; });
+        renderNavigation();
+        renderCheck();
+        root.querySelector("#previous-module").disabled = activeModule === 0;
+        root.querySelector("#next-module").textContent = activeModule === modules.length - 1 ? "Volver al inicio ↺" : "Siguiente →";
+        root.querySelector(`[data-panel="${id}"]`).scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function renderCheck() {
+        const id = modules[activeModule].id;
+        const check = checks[id];
+        root.querySelector("#check-question").textContent = check.question;
+        const options = root.querySelector("#check-options");
+        options.innerHTML = check.options.map((option, index) => `<button class="lab-button" data-check-option="${index}">${escapeHTML(option)}</button>`).join("");
+        const feedback = root.querySelector("#check-feedback");
+        feedback.textContent = completed.has(id) ? `✓ ${check.feedback}` : "";
+        feedback.className = completed.has(id) ? "lab-feedback is-correct" : "lab-feedback";
+        options.querySelectorAll("[data-check-option]").forEach(button => button.addEventListener("click", () => {
+          const selected = Number(button.dataset.checkOption);
+          if (selected === check.correct) {
+            completed.add(id);
+            feedback.textContent = `✓ ${check.feedback}`;
+            feedback.className = "lab-feedback is-correct";
+            try { localStorage.setItem("rag-learning-lab-progress", JSON.stringify([...completed])); } catch (_) {}
+            updateProgress();
+            renderNavigation();
+          } else {
+            feedback.textContent = "Revisa la transformación mostrada en este módulo e inténtalo otra vez.";
+            feedback.className = "lab-feedback is-wrong";
+          }
+        }));
+      }
+
+      function renderSource(key) {
+        const item = sourceExamples[key];
+        root.querySelectorAll("[data-source-key]").forEach(button => button.setAttribute("aria-pressed", button.dataset.sourceKey === key));
+        root.querySelector("#raw-record").textContent = pretty(item.raw);
+        root.querySelector("#document-record").textContent = `Document(\n  page_content=${JSON.stringify(item.document.page_content)},\n  metadata=${pretty(item.document.metadata).replaceAll("\n", "\n  ")}\n)`;
+        root.querySelector("#document-uses").innerHTML = item.uses.map(([label, value]) => `<p><strong>${escapeHTML(label)}:</strong><br>${escapeHTML(value)}</p>`).join("");
+      }
+
+      const sourceControls = root.querySelector("#source-controls");
+      sourceControls.innerHTML = Object.entries(sourceExamples).map(([key, value], index) => `<button class="lab-button" data-source-key="${key}" aria-pressed="${index === 0}">${escapeHTML(value.label)}</button>`).join("");
+      sourceControls.querySelectorAll("[data-source-key]").forEach(button => button.addEventListener("click", () => renderSource(button.dataset.sourceKey)));
+      renderSource("prices");
+
+      function renderChunks() {
+        const size = Number(root.querySelector("#chunk-size").value);
+        const overlap = Math.min(Number(root.querySelector("#chunk-overlap").value), size - 1);
+        root.querySelector("#chunk-size-value").textContent = size;
+        root.querySelector("#chunk-overlap-value").textContent = overlap;
+        const chunks = [];
+        let start = 0;
+        while (start < filingText.length) {
+          const end = Math.min(start + size, filingText.length);
+          chunks.push({ start, end, text: filingText.slice(start, end) });
+          if (end === filingText.length) break;
+          start = end - overlap;
+        }
+        root.querySelector("#chunk-count").textContent = chunks.length;
+        root.querySelector("#chunk-shared").textContent = overlap;
+        root.querySelector("#chunk-list").innerHTML = chunks.map((chunk, index) => `<div class="lab-chunk"><div class="lab-chunk-head"><strong>Chunk ${index}</strong><span>chars ${chunk.start}–${chunk.end} · page 12</span></div><div>${escapeHTML(chunk.text.slice(0, 190))}${chunk.text.length > 190 ? "…" : ""}</div></div>`).join("");
+      }
+      root.querySelector("#chunk-size").addEventListener("input", renderChunks);
+      root.querySelector("#chunk-overlap").addEventListener("input", renderChunks);
+      renderChunks();
+
+      const embeddingControls = root.querySelector("#embedding-controls");
+      embeddingControls.innerHTML = Object.entries(sourceExamples).map(([key, value], index) => `<button class="lab-button" data-embedding-key="${key}" aria-pressed="${index === 0}">${escapeHTML(value.label)}</button>`).join("");
+      function renderEmbedding(key) {
+        const item = sourceExamples[key];
+        embeddingControls.querySelectorAll("[data-embedding-key]").forEach(button => button.setAttribute("aria-pressed", button.dataset.embeddingKey === key));
+        root.querySelector("#embed-doc-label").textContent = item.label;
+        root.querySelector("#embed-content").textContent = item.document.page_content;
+        root.querySelector("#embed-metadata").textContent = pretty(item.document.metadata);
+      }
+      embeddingControls.querySelectorAll("[data-embedding-key]").forEach(button => button.addEventListener("click", () => renderEmbedding(button.dataset.embeddingKey)));
+      renderEmbedding("prices");
+
+      const retrievalSelect = root.querySelector("#retrieval-case");
+      retrievalSelect.innerHTML = retrievalCases.map((item, index) => `<option value="${index}">${escapeHTML(item.question)}</option>`).join("");
+      function renderRetrieval() {
+        const item = retrievalCases[Number(retrievalSelect.value) || 0];
+        const fallbackAvailable = item.id === "price-date";
+        const fallback = fallbackAvailable && root.querySelector("#fallback-toggle").checked;
+        root.querySelector("#fallback-wrap").hidden = !fallbackAvailable;
+        root.querySelector("#route-datasets").textContent = item.datasets.join(", ");
+        root.querySelector("#route-constraints").textContent = `tickers=${item.tickers.join(", ") || "none"}; dates=${item.dates.join(", ") || "none"}`;
+        root.querySelector("#route-topk").textContent = `Top-${item.k}`;
+        root.querySelector("#route-filter").textContent = pretty(fallback ? item.fallbackFilter : item.exactFilter);
+        root.querySelector("#route-tags").innerHTML = [
+          ...item.datasets.map(value => `<span class="lab-label is-exact">dataset: ${escapeHTML(value)}</span>`),
+          ...item.tickers.map(value => `<span class="lab-label is-exact">ticker: ${escapeHTML(value)}</span>`),
+          ...(fallback ? [] : item.dates.map(value => `<span class="lab-label is-exact">date: ${escapeHTML(value)}</span>`)),
+          `<span class="lab-label is-semantic">semantic ranking</span>`
+        ].join("");
+        const results = fallback ? item.fallbackResults : item.results;
+        root.querySelector("#route-results").innerHTML = results.map((result, index) => `<div class="lab-result"><strong>${index + 1}. ${escapeHTML(result)}</strong><br><small>${fallback ? "Related evidence after relaxing date" : "Passed metadata filter, then ranked semantically"}</small></div>`).join("");
+        root.querySelector("#fallback-note").className = fallback ? "lab-callout lab-warning" : "lab-callout";
+        root.querySelector("#fallback-note").innerHTML = fallback
+          ? "<p><strong>Fallback active:</strong> se conserva AAPL, se elimina la fecha exacta. La respuesta debe reconocer esta limitación.</p>"
+          : "<p><strong>Metadata decide quién puede competir.</strong> Los embeddings deciden cuáles documentos ganan.</p>";
+      }
+      retrievalSelect.addEventListener("change", renderRetrieval);
+      root.querySelector("#fallback-toggle").addEventListener("change", renderRetrieval);
+      renderRetrieval();
+
+      const contextViews = {
+        documents: `<div class="lab-evidence-list"><div class="lab-result"><strong>Document 1</strong><br>AAPL closed at $199.25 on 2025-04-28.<br><small>stock_price_details.csv · row 42</small></div><div class="lab-result"><strong>Document 2</strong><br>AAPL trading volume increased during the session.<br><small>stock_price_details.csv · row 43</small></div></div>`,
+        formatted: `<pre class="lab-code">Corpus snapshot date: 2025-04-30
+
+[Source 1] AAPL closed at $199.25 on 2025-04-28.
+Metadata: stock_price_details.csv | row 42
+
+[Source 2] AAPL trading volume increased during the session.
+Metadata: stock_price_details.csv | row 43</pre>`,
+        prompt: `<pre class="lab-code">System: Use only the retrieved context. If evidence is insufficient, say what is missing.
+
+Question:
+What was Apple's stock price on 2025-04-28?
+
+Retrieved context:
+[Source 1] AAPL closed at $199.25...
+
+Answer with a direct response and a short Sources section.</pre>`,
+        answer: `<div class="lab-callout"><p><strong>Answer:</strong> Apple closed at $199.25 on April 28, 2025.<br><br><strong>Sources:</strong> [Source 1]</p></div><p style="color:var(--lab-muted)">La respuesta es un ejemplo educativo, no un resultado de ejecución de v3.</p>`
+      };
+      function renderContextTab(key) {
+        root.querySelectorAll("[data-context-tab]").forEach(button => { const active = button.dataset.contextTab === key; button.classList.toggle("is-active", active); button.setAttribute("aria-pressed", active); });
+        root.querySelector("#context-content").innerHTML = contextViews[key];
+      }
+      root.querySelectorAll("[data-context-tab]").forEach(button => button.addEventListener("click", () => renderContextTab(button.dataset.contextTab)));
+      renderContextTab("documents");
+
+      root.querySelector("#optimization-dots").innerHTML = Array.from({ length: 12 }, (_, index) => `<span class="lab-dot">${index + 1}</span>`).join("");
+      root.querySelector("#holdout-dots").innerHTML = Array.from({ length: 8 }, (_, index) => `<span class="lab-dot holdout">${index + 13}</span>`).join("");
+      const metricList = root.querySelector("#metric-list");
+      metricList.innerHTML = metrics.map((metric, index) => `<button class="lab-button lab-metric-button ${index === 0 ? "is-active" : ""}" data-metric-index="${index}">${escapeHTML(metric.name)}<span>${escapeHTML(metric.owner)}</span></button>`).join("");
+      function renderMetric(index) {
+        const metric = metrics[index];
+        metricList.querySelectorAll("[data-metric-index]").forEach(button => button.classList.toggle("is-active", Number(button.dataset.metricIndex) === index));
+        root.querySelector("#metric-detail").innerHTML = `<h3>${escapeHTML(metric.name)}</h3><p><strong>Pregunta:</strong> ${escapeHTML(metric.question)}</p><p><strong>Campos:</strong><br>${metric.fields.map(field => `<span class="lab-label">${escapeHTML(field)}</span>`).join("")}</p><p><strong>Necesita expected_output:</strong> ${metric.reference ? "Sí" : "No"}</p><p><strong>Ejemplo de fallo:</strong><br>${escapeHTML(metric.failure)}</p>`;
+      }
+      metricList.querySelectorAll("[data-metric-index]").forEach(button => button.addEventListener("click", () => renderMetric(Number(button.dataset.metricIndex))));
+      renderMetric(0);
+
+      const configControls = root.querySelector("#config-controls");
+      configControls.innerHTML = Object.entries(configs).map(([key, config], index) => `<button class="lab-button" data-config-key="${key}" aria-pressed="${index === 0}">${escapeHTML(config.name)}</button>`).join("");
+      function renderConfig(key) {
+        const config = configs[key];
+        configControls.querySelectorAll("[data-config-key]").forEach(button => button.setAttribute("aria-pressed", button.dataset.configKey === key));
+        root.querySelector("#config-title").textContent = config.name;
+        root.querySelector("#config-rationale").textContent = config.rationale;
+        root.querySelector("#config-table").innerHTML = `<tbody>${Object.entries(config.values).map(([label, value]) => `<tr><th>${escapeHTML(label)}</th><td>${escapeHTML(value)}</td></tr>`).join("")}</tbody>`;
+      }
+      configControls.querySelectorAll("[data-config-key]").forEach(button => button.addEventListener("click", () => renderConfig(button.dataset.configKey)));
+      renderConfig("precision");
+
+      const matrix = root.querySelector("#official-matrix");
+      matrix.innerHTML = `<thead><tr><th>Pipeline</th>${officialCases.map(item => `<th>Case ${item.id}<br>${escapeHTML(item.short)}</th>`).join("")}</tr></thead><tbody>${pipelines.map((pipeline, pipelineIndex) => `<tr><td>${escapeHTML(pipeline)}</td>${officialCases.map((item, caseIndex) => `<td><button data-pipeline-index="${pipelineIndex}" data-case-index="${caseIndex}" aria-pressed="${pipelineIndex === 0 && caseIndex === 0}">Pending</button></td>`).join("")}</tr>`).join("")}</tbody>`;
+      function renderOfficial(pipelineIndex, caseIndex) {
+        const pipeline = pipelines[pipelineIndex];
+        const item = officialCases[caseIndex];
+        matrix.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed", Number(button.dataset.pipelineIndex) === pipelineIndex && Number(button.dataset.caseIndex) === caseIndex));
+        root.querySelector("#official-detail").innerHTML = `<h3>Case ${item.id} · ${escapeHTML(pipeline)}</h3><p>${escapeHTML(item.question)}</p><p><strong>Expected datasets:</strong><br>${item.datasets.map(value => `<span class="lab-label">${escapeHTML(value)}</span>`).join("")}</p><p><strong>Required entities:</strong><br>${item.entities.map(value => `<span class="lab-label">${escapeHTML(value)}</span>`).join("")}</p><p><strong>Execution status:</strong> Pending notebook v3 execution.</p>`;
+      }
+      matrix.querySelectorAll("button").forEach(button => button.addEventListener("click", () => renderOfficial(Number(button.dataset.pipelineIndex), Number(button.dataset.caseIndex))));
+      renderOfficial(0, 0);
+
+      root.querySelector("#previous-module").addEventListener("click", () => showModule(activeModule - 1));
+      root.querySelector("#next-module").addEventListener("click", () => showModule(activeModule === modules.length - 1 ? 0 : activeModule + 1));
+
+      updateProgress();
+      showModule(0);
+    })();
+  </script>
+</div>

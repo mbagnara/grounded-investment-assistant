@@ -1,0 +1,1736 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Rag Learning Lab.Fragment</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;max-width:736px;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="Rag Learning Lab.Fragment" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Rag Learning Lab.Fragment&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(--background) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: light-dark(rgb(255 255 255), rgb(24 24 24));
+  --foreground: light-dark(rgb(26 28 31), rgb(255 255 255));
+  --card: color-mix(in oklab, var(--foreground) 5%, transparent);
+  --card-foreground: var(--foreground);
+  --popover: light-dark(rgb(255 255 255), rgb(45 45 45));
+  --popover-foreground: var(--foreground);
+  --primary: light-dark(rgb(51 156 255), rgb(131 195 255));
+  --primary-foreground: light-dark(rgb(255 255 255), rgb(13 13 13));
+  --secondary: light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%));
+  --secondary-foreground: var(--foreground);
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: light-dark(
+    rgb(26 28 31 / 49.4%),
+    rgb(255 255 255 / 49.8%)
+  );
+  --accent: light-dark(rgb(229 242 255), rgb(13 39 63));
+  --accent-foreground: var(--primary);
+  --destructive: light-dark(rgb(226 85 7), rgb(255 133 73));
+  --border: light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%));
+  --input: light-dark(
+    rgb(26 28 31 / 11.8%),
+    color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+  );
+  --ring: light-dark(rgb(51 156 255), rgb(131 195 255 / 76%));
+  --font-size-base: 14px;
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: 12.5px;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+  --color-background-primary: var(--background);
+  --color-text-primary: var(--foreground);
+  --color-border-secondary: var(--border);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--viz-font-weight-medium);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+    [aria-pressed=&quot;true&quot;],
+    [aria-selected=&quot;true&quot;],
+    .is-selected
+  ) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;rag-learning-lab&quot;&gt;
+  &lt;style&gt;
+    #rag-learning-lab {
+      --lab-bg: #f6f7fb;
+      --lab-panel: #ffffff;
+      --lab-text: #172033;
+      --lab-muted: #5d687b;
+      --lab-border: #dce1ea;
+      --lab-primary: #2457d6;
+      --lab-primary-soft: #e9efff;
+      --lab-accent: #0c7c68;
+      --lab-accent-soft: #e1f4ef;
+      --lab-warning: #9a5a00;
+      --lab-warning-soft: #fff2d8;
+      --lab-code: #111827;
+      --lab-code-text: #e7edf7;
+      color: var(--lab-text);
+      background: var(--lab-bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;
+      line-height: 1.55;
+      min-height: 100%;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      #rag-learning-lab {
+        --lab-bg: #0f1420;
+        --lab-panel: #171e2c;
+        --lab-text: #edf1f7;
+        --lab-muted: #aab4c5;
+        --lab-border: #313b4d;
+        --lab-primary: #8aa8ff;
+        --lab-primary-soft: #22325b;
+        --lab-accent: #66d5bf;
+        --lab-accent-soft: #183d37;
+        --lab-warning: #f0bd68;
+        --lab-warning-soft: #483719;
+        --lab-code: #090d15;
+        --lab-code-text: #e7edf7;
+      }
+    }
+
+    #rag-learning-lab * { box-sizing: border-box; }
+    #rag-learning-lab button,
+    #rag-learning-lab select,
+    #rag-learning-lab input { font: inherit; }
+    #rag-learning-lab button { cursor: pointer; }
+    #rag-learning-lab button:focus-visible,
+    #rag-learning-lab select:focus-visible,
+    #rag-learning-lab input:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--lab-primary) 45%, transparent);
+      outline-offset: 2px;
+    }
+
+    .lab-shell { max-width: 1180px; margin: 0 auto; padding: 28px 20px 48px; }
+    .lab-hero { display: grid; gap: 12px; margin-bottom: 24px; }
+    .lab-eyebrow { color: var(--lab-primary); font-weight: 500; letter-spacing: .06em; text-transform: uppercase; font-size: .78rem; }
+    .lab-hero h1 { margin: 0; font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.08; font-weight: 500; }
+    .lab-hero p { margin: 0; color: var(--lab-muted); max-width: 780px; }
+    .lab-progress-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .lab-progress-track { flex: 1 1 280px; height: 8px; background: var(--lab-border); border-radius: 999px; overflow: hidden; }
+    .lab-progress-fill { height: 100%; width: 0; background: var(--lab-accent); transition: width .25s ease; }
+    .lab-progress-label { color: var(--lab-muted); font-size: .9rem; }
+
+    .lab-pipeline { display: grid; grid-template-columns: repeat(8, minmax(105px, 1fr)); gap: 8px; margin-bottom: 24px; overflow-x: auto; padding: 2px; }
+    .lab-stage {
+      border: 1px solid var(--lab-border);
+      background: var(--lab-panel);
+      color: var(--lab-text);
+      border-radius: 12px;
+      padding: 10px 8px;
+      min-height: 64px;
+      text-align: left;
+      display: grid;
+      align-content: center;
+      gap: 2px;
+    }
+    .lab-stage span { color: var(--lab-muted); font-size: .75rem; }
+    .lab-stage strong { font-size: .86rem; font-weight: 500; }
+    .lab-stage[aria-pressed=&quot;true&quot;] { border-color: var(--lab-primary); background: var(--lab-primary-soft); }
+    .lab-stage.is-complete strong::after { content: &quot;  ✓&quot;; color: var(--lab-accent); }
+
+    .lab-panel { background: var(--lab-panel); border: 1px solid var(--lab-border); border-radius: 18px; padding: clamp(18px, 3vw, 32px); }
+    .lab-panel[hidden] { display: none; }
+    .lab-panel-head { display: grid; gap: 6px; margin-bottom: 22px; }
+    .lab-panel-head h2 { margin: 0; font-size: clamp(1.35rem, 2.8vw, 2rem); font-weight: 500; }
+    .lab-panel-head p { margin: 0; color: var(--lab-muted); max-width: 800px; }
+    .lab-section-ref { color: var(--lab-primary); font-size: .82rem; font-weight: 500; }
+
+    .lab-controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; align-items: end; }
+    .lab-button {
+      border: 1px solid var(--lab-border);
+      color: var(--lab-text);
+      background: var(--lab-panel);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .lab-button[aria-pressed=&quot;true&quot;], .lab-button.is-active { background: var(--lab-primary); color: #fff; border-color: var(--lab-primary); }
+    @media (prefers-color-scheme: dark) {
+      .lab-button[aria-pressed=&quot;true&quot;], .lab-button.is-active { color: #101725; }
+    }
+    .lab-button-secondary { background: var(--lab-primary-soft); border-color: color-mix(in srgb, var(--lab-primary) 35%, var(--lab-border)); }
+    .lab-field { display: grid; gap: 5px; min-width: min(100%, 220px); }
+    .lab-field label { color: var(--lab-muted); font-size: .84rem; }
+    .lab-select, .lab-range {
+      width: 100%;
+      border: 1px solid var(--lab-border);
+      background: var(--lab-panel);
+      color: var(--lab-text);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    .lab-range { padding: 6px 0; }
+
+    .lab-grid-2, .lab-grid-3 { display: grid; gap: 16px; }
+    .lab-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lab-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .lab-block { min-width: 0; }
+    .lab-block h3 { margin: 0 0 8px; font-size: 1rem; font-weight: 500; }
+    .lab-block p { margin: 0; color: var(--lab-muted); }
+    .lab-card { border: 1px solid var(--lab-border); border-radius: 14px; padding: 16px; background: var(--lab-panel); }
+    .lab-card strong { font-weight: 500; }
+    .lab-callout { border-left: 4px solid var(--lab-accent); padding: 10px 14px; background: var(--lab-accent-soft); margin: 18px 0; }
+    .lab-warning { border-left-color: var(--lab-warning); background: var(--lab-warning-soft); }
+    .lab-callout p { margin: 0; }
+
+    .lab-code { background: var(--lab-code); color: var(--lab-code-text); border-radius: 12px; padding: 14px; overflow-wrap: anywhere; white-space: pre-wrap; margin: 0; font: 0.86rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .lab-label { display: inline-flex; align-items: center; border: 1px solid var(--lab-border); border-radius: 999px; padding: 3px 8px; font-size: .78rem; color: var(--lab-muted); margin: 2px 4px 2px 0; }
+    .lab-label.is-exact { background: var(--lab-primary-soft); color: var(--lab-text); }
+    .lab-label.is-semantic { background: var(--lab-accent-soft); color: var(--lab-text); }
+    .lab-arrow { color: var(--lab-muted); font-size: 1.25rem; align-self: center; justify-self: center; }
+
+    .lab-doc-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: stretch; }
+    .lab-doc-flow .lab-card { overflow: hidden; }
+    .lab-doc-flow pre { max-height: 340px; overflow: auto; }
+
+    .lab-chunk-list { display: grid; gap: 10px; margin-top: 16px; }
+    .lab-chunk { position: relative; border-left: 6px solid var(--lab-primary); background: var(--lab-primary-soft); padding: 12px 14px; border-radius: 8px; }
+    .lab-chunk:nth-child(even) { border-left-color: var(--lab-accent); background: var(--lab-accent-soft); }
+    .lab-chunk-head { display: flex; justify-content: space-between; gap: 8px; color: var(--lab-muted); font-size: .8rem; margin-bottom: 5px; }
+
+    .lab-flowline { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+    .lab-flowstep { border-top: 4px solid var(--lab-border); padding-top: 10px; }
+    .lab-flowstep.is-active { border-top-color: var(--lab-primary); }
+    .lab-flowstep strong { display: block; font-weight: 500; margin-bottom: 4px; }
+    .lab-flowstep span { color: var(--lab-muted); font-size: .84rem; }
+
+    .lab-retrieval-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 18px; }
+    .lab-result-list { display: grid; gap: 8px; }
+    .lab-result { border: 1px solid var(--lab-border); border-radius: 10px; padding: 10px 12px; }
+    .lab-result small { color: var(--lab-muted); }
+
+    .lab-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .lab-tab-content { min-height: 240px; }
+    .lab-evidence-list { display: grid; gap: 10px; }
+
+    .lab-split { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; }
+    .lab-case-dots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .lab-dot { width: 28px; height: 28px; display: inline-grid; place-items: center; border-radius: 50%; background: var(--lab-primary-soft); color: var(--lab-text); font-size: .75rem; }
+    .lab-dot.holdout { background: var(--lab-accent-soft); }
+
+    .lab-metric-list { display: grid; gap: 8px; }
+    .lab-metric-button { text-align: left; width: 100%; }
+    .lab-metric-button span { display: block; color: var(--lab-muted); font-size: .8rem; }
+    .lab-metric-detail { min-height: 260px; }
+
+    .lab-config-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .lab-config-table th, .lab-config-table td { border-bottom: 1px solid var(--lab-border); padding: 8px 6px; text-align: left; vertical-align: top; }
+    .lab-config-table th { color: var(--lab-muted); font-weight: 500; font-size: .82rem; }
+
+    .lab-matrix-wrap { overflow-x: auto; }
+    .lab-matrix { border-collapse: separate; border-spacing: 6px; min-width: 760px; width: 100%; }
+    .lab-matrix th { color: var(--lab-muted); font-weight: 500; font-size: .8rem; text-align: center; }
+    .lab-matrix th:first-child { text-align: left; }
+    .lab-matrix td:first-child { font-size: .82rem; }
+    .lab-matrix button { width: 100%; min-height: 42px; border: 1px solid var(--lab-border); background: var(--lab-panel); color: var(--lab-text); border-radius: 9px; }
+    .lab-matrix button[aria-pressed=&quot;true&quot;] { background: var(--lab-primary-soft); border-color: var(--lab-primary); }
+
+    .lab-check { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--lab-border); }
+    .lab-check h3 { margin: 0 0 6px; font-size: 1rem; font-weight: 500; }
+    .lab-check p { margin: 0 0 10px; }
+    .lab-check-options { display: flex; flex-wrap: wrap; gap: 8px; }
+    .lab-feedback { margin-top: 10px; min-height: 24px; color: var(--lab-muted); }
+    .lab-feedback.is-correct { color: var(--lab-accent); }
+    .lab-feedback.is-wrong { color: var(--lab-warning); }
+
+    .lab-footer-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+
+    @media (max-width: 820px) {
+      .lab-grid-3, .lab-doc-flow { grid-template-columns: 1fr; }
+      .lab-doc-flow .lab-arrow { transform: rotate(90deg); }
+      .lab-retrieval-layout, .lab-grid-2 { grid-template-columns: 1fr; }
+      .lab-pipeline { grid-template-columns: repeat(8, 132px); }
+    }
+
+    @media (max-width: 520px) {
+      .lab-shell { padding: 18px 12px 34px; }
+      .lab-panel { border-radius: 12px; padding: 16px; }
+      .lab-split { grid-template-columns: 1fr; }
+      .lab-footer-nav { flex-direction: column; }
+      .lab-footer-nav .lab-button { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .lab-progress-fill { transition: none; }
+    }
+  &lt;/style&gt;
+
+  &lt;div class=&quot;lab-shell&quot;&gt;
+    &lt;header class=&quot;lab-hero&quot;&gt;
+      &lt;span class=&quot;lab-eyebrow&quot;&gt;UTAIGA Project 2 · Interactive learning path&lt;/span&gt;
+      &lt;h1&gt;Grounded Investment Assistant: RAG Learning Lab&lt;/h1&gt;
+      &lt;p&gt;Recorre el pipeline de Full Code Notebook v3 desde los archivos originales hasta la evaluación de los cinco casos oficiales. Cada etapa conecta teoría, código y una decisión observable.&lt;/p&gt;
+      &lt;div class=&quot;lab-progress-row&quot;&gt;
+        &lt;div class=&quot;lab-progress-track&quot; aria-hidden=&quot;true&quot;&gt;&lt;div class=&quot;lab-progress-fill&quot; id=&quot;lab-progress-fill&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;span class=&quot;lab-progress-label&quot; id=&quot;lab-progress-label&quot;&gt;0 de 8 conceptos comprobados&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/header&gt;
+
+    &lt;nav class=&quot;lab-pipeline&quot; aria-label=&quot;Módulos del laboratorio&quot; id=&quot;lab-module-nav&quot;&gt;&lt;/nav&gt;
+
+    &lt;main&gt;
+      &lt;section class=&quot;lab-panel&quot; data-panel=&quot;documents&quot; aria-labelledby=&quot;documents-title&quot;&gt;
+        &lt;div class=&quot;lab-panel-head&quot;&gt;
+          &lt;span class=&quot;lab-section-ref&quot;&gt;Notebook 1.1–1.2&lt;/span&gt;
+          &lt;h2 id=&quot;documents-title&quot;&gt;De raw data a LangChain Document&lt;/h2&gt;
+          &lt;p&gt;Observa cómo cada fuente produce unidades recuperables con contenido semántico y metadata exacta.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-controls&quot; id=&quot;source-controls&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;lab-doc-flow&quot; aria-live=&quot;polite&quot;&gt;
+          &lt;div class=&quot;lab-card lab-block&quot;&gt;&lt;h3&gt;1 · Registro original&lt;/h3&gt;&lt;pre class=&quot;lab-code&quot; id=&quot;raw-record&quot;&gt;&lt;/pre&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-arrow&quot; aria-hidden=&quot;true&quot;&gt;→&lt;/div&gt;
+          &lt;div class=&quot;lab-card lab-block&quot;&gt;&lt;h3&gt;2 · Document&lt;/h3&gt;&lt;pre class=&quot;lab-code&quot; id=&quot;document-record&quot;&gt;&lt;/pre&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-arrow&quot; aria-hidden=&quot;true&quot;&gt;→&lt;/div&gt;
+          &lt;div class=&quot;lab-card lab-block&quot;&gt;&lt;h3&gt;3 · Uso en RAG&lt;/h3&gt;&lt;div id=&quot;document-uses&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-callout&quot;&gt;&lt;p&gt;&lt;strong&gt;Regla:&lt;/strong&gt; &lt;code&gt;page_content&lt;/code&gt; se convierte en embedding; &lt;code&gt;metadata&lt;/code&gt; permite filtros, trazabilidad y citas.&lt;/p&gt;&lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section class=&quot;lab-panel&quot; data-panel=&quot;chunking&quot; aria-labelledby=&quot;chunking-title&quot; hidden&gt;
+        &lt;div class=&quot;lab-panel-head&quot;&gt;
+          &lt;span class=&quot;lab-section-ref&quot;&gt;Notebook 1.2&lt;/span&gt;
+          &lt;h2 id=&quot;chunking-title&quot;&gt;Laboratorio de chunking&lt;/h2&gt;
+          &lt;p&gt;Ajusta tamaño y overlap para observar el balance entre contexto, precisión y duplicación.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-controls&quot;&gt;
+          &lt;div class=&quot;lab-field&quot;&gt;
+            &lt;label for=&quot;chunk-size&quot;&gt;Chunk size: &lt;strong id=&quot;chunk-size-value&quot;&gt;1000&lt;/strong&gt; caracteres&lt;/label&gt;
+            &lt;input class=&quot;lab-range&quot; id=&quot;chunk-size&quot; type=&quot;range&quot; min=&quot;500&quot; max=&quot;1400&quot; step=&quot;100&quot; value=&quot;1000&quot;&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;lab-field&quot;&gt;
+            &lt;label for=&quot;chunk-overlap&quot;&gt;Overlap: &lt;strong id=&quot;chunk-overlap-value&quot;&gt;200&lt;/strong&gt; caracteres&lt;/label&gt;
+            &lt;input class=&quot;lab-range&quot; id=&quot;chunk-overlap&quot; type=&quot;range&quot; min=&quot;0&quot; max=&quot;400&quot; step=&quot;50&quot; value=&quot;200&quot;&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-grid-3&quot;&gt;
+          &lt;div class=&quot;lab-card&quot;&gt;&lt;strong id=&quot;chunk-count&quot;&gt;0&lt;/strong&gt;&lt;p&gt;chunks resultantes&lt;/p&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-card&quot;&gt;&lt;strong id=&quot;chunk-shared&quot;&gt;0&lt;/strong&gt;&lt;p&gt;caracteres repetidos por frontera&lt;/p&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-card&quot;&gt;&lt;strong&gt;Page 12&lt;/strong&gt;&lt;p&gt;provenance heredada por cada chunk&lt;/p&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-chunk-list&quot; id=&quot;chunk-list&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;lab-callout lab-warning&quot;&gt;&lt;p&gt;El notebook usa caracteres, no tokens. Más overlap conserva continuidad, pero también aumenta duplicación y costo de indexación.&lt;/p&gt;&lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section class=&quot;lab-panel&quot; data-panel=&quot;chroma&quot; aria-labelledby=&quot;chroma-title&quot; hidden&gt;
+        &lt;div class=&quot;lab-panel-head&quot;&gt;
+          &lt;span class=&quot;lab-section-ref&quot;&gt;Notebook 1.3&lt;/span&gt;
+          &lt;h2 id=&quot;chroma-title&quot;&gt;Embeddings, IDs y una colección Chroma&lt;/h2&gt;
+          &lt;p&gt;Sigue las tres partes de un documento: texto vectorizado, metadata filtrable e identidad reproducible.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-controls&quot; id=&quot;embedding-controls&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;lab-flowline&quot; role=&quot;img&quot; aria-label=&quot;Flujo de un documento hacia Chroma&quot;&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;Document&lt;/strong&gt;&lt;span id=&quot;embed-doc-label&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;page_content&lt;/strong&gt;&lt;span&gt;Entrada a text-embedding-3-small&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;Embedding&lt;/strong&gt;&lt;span&gt;Representación semántica comparable&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;Metadata + SHA-256&lt;/strong&gt;&lt;span&gt;Filtros e identidad determinista&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;Chroma&lt;/strong&gt;&lt;span&gt;investment_rag_v2&lt;/span&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-grid-2&quot; style=&quot;margin-top:18px&quot;&gt;
+          &lt;div class=&quot;lab-card lab-block&quot;&gt;&lt;h3&gt;Contenido embebido&lt;/h3&gt;&lt;pre class=&quot;lab-code&quot; id=&quot;embed-content&quot;&gt;&lt;/pre&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-card lab-block&quot;&gt;&lt;h3&gt;Metadata no embebida&lt;/h3&gt;&lt;pre class=&quot;lab-code&quot; id=&quot;embed-metadata&quot;&gt;&lt;/pre&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-callout&quot;&gt;&lt;p&gt;Una colección permite búsquedas cruzadas. El campo &lt;code&gt;dataset&lt;/code&gt; mantiene la capacidad de limitar cada búsqueda a la fuente correcta.&lt;/p&gt;&lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section class=&quot;lab-panel&quot; data-panel=&quot;retrieval&quot; aria-labelledby=&quot;retrieval-title&quot; hidden&gt;
+        &lt;div class=&quot;lab-panel-head&quot;&gt;
+          &lt;span class=&quot;lab-section-ref&quot;&gt;Notebook 1.4&lt;/span&gt;
+          &lt;h2 id=&quot;retrieval-title&quot;&gt;Router, filtros exactos y búsqueda semántica&lt;/h2&gt;
+          &lt;p&gt;Selecciona una pregunta y observa cómo se transforma en un plan de recuperación verificable.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-controls&quot;&gt;
+          &lt;div class=&quot;lab-field&quot; style=&quot;flex:1 1 420px&quot;&gt;
+            &lt;label for=&quot;retrieval-case&quot;&gt;Pregunta&lt;/label&gt;
+            &lt;select class=&quot;lab-select&quot; id=&quot;retrieval-case&quot;&gt;&lt;/select&gt;
+          &lt;/div&gt;
+          &lt;label class=&quot;lab-field&quot; id=&quot;fallback-wrap&quot;&gt;
+            &lt;span&gt;Simulación&lt;/span&gt;
+            &lt;span&gt;&lt;input id=&quot;fallback-toggle&quot; type=&quot;checkbox&quot;&gt; La fecha exacta no existe&lt;/span&gt;
+          &lt;/label&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-flowline&quot; aria-label=&quot;Etapas del retrieval&quot;&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;1 · Route&lt;/strong&gt;&lt;span id=&quot;route-datasets&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;2 · Constraints&lt;/strong&gt;&lt;span id=&quot;route-constraints&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;3 · Exact filter&lt;/strong&gt;&lt;span&gt;Metadata limita candidatos&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;4 · Semantic search&lt;/strong&gt;&lt;span&gt;Embeddings ordenan candidatos&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;5 · Top-k&lt;/strong&gt;&lt;span id=&quot;route-topk&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-retrieval-layout&quot; style=&quot;margin-top:18px&quot;&gt;
+          &lt;div class=&quot;lab-card lab-block&quot;&gt;&lt;h3&gt;Filtro Chroma&lt;/h3&gt;&lt;pre class=&quot;lab-code&quot; id=&quot;route-filter&quot;&gt;&lt;/pre&gt;&lt;div id=&quot;route-tags&quot; style=&quot;margin-top:10px&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-card lab-block&quot;&gt;&lt;h3&gt;Resultados semánticos dentro del subconjunto&lt;/h3&gt;&lt;div class=&quot;lab-result-list&quot; id=&quot;route-results&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-callout&quot; id=&quot;fallback-note&quot;&gt;&lt;p&gt;&lt;strong&gt;Metadata decide quién puede competir.&lt;/strong&gt; Los embeddings deciden cuáles documentos ganan.&lt;/p&gt;&lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section class=&quot;lab-panel&quot; data-panel=&quot;context&quot; aria-labelledby=&quot;context-title&quot; hidden&gt;
+        &lt;div class=&quot;lab-panel-head&quot;&gt;
+          &lt;span class=&quot;lab-section-ref&quot;&gt;Notebook 1.4&lt;/span&gt;
+          &lt;h2 id=&quot;context-title&quot;&gt;De documentos recuperados a respuesta grounded&lt;/h2&gt;
+          &lt;p&gt;Inspecciona cada representación que atraviesa el pipeline antes de llegar al modelo.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-tabs&quot; id=&quot;context-tabs&quot;&gt;
+          &lt;button class=&quot;lab-button is-active&quot; data-context-tab=&quot;documents&quot; aria-pressed=&quot;true&quot;&gt;Documents&lt;/button&gt;
+          &lt;button class=&quot;lab-button&quot; data-context-tab=&quot;formatted&quot; aria-pressed=&quot;false&quot;&gt;Formatted context&lt;/button&gt;
+          &lt;button class=&quot;lab-button&quot; data-context-tab=&quot;prompt&quot; aria-pressed=&quot;false&quot;&gt;Prompt&lt;/button&gt;
+          &lt;button class=&quot;lab-button&quot; data-context-tab=&quot;answer&quot; aria-pressed=&quot;false&quot;&gt;Answer&lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-tab-content lab-card&quot; id=&quot;context-content&quot; aria-live=&quot;polite&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;lab-callout&quot;&gt;&lt;p&gt;&lt;code&gt;format_source_metadata()&lt;/code&gt; crea etiquetas legibles; &lt;code&gt;format_retrieved_context()&lt;/code&gt; numera la evidencia e incorpora la fecha de corte.&lt;/p&gt;&lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section class=&quot;lab-panel&quot; data-panel=&quot;evaluation&quot; aria-labelledby=&quot;evaluation-title&quot; hidden&gt;
+        &lt;div class=&quot;lab-panel-head&quot;&gt;
+          &lt;span class=&quot;lab-section-ref&quot;&gt;Notebook 1.5–1.7&lt;/span&gt;
+          &lt;h2 id=&quot;evaluation-title&quot;&gt;Benchmark, holdout y métricas válidas&lt;/h2&gt;
+          &lt;p&gt;Separa el experimento correctamente y distingue entre cobertura estructural, retrieval semántico y calidad de respuesta.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-grid-2&quot;&gt;
+          &lt;div class=&quot;lab-card lab-block&quot;&gt;
+            &lt;h3&gt;Source-balanced split&lt;/h3&gt;
+            &lt;div class=&quot;lab-split&quot;&gt;
+              &lt;div&gt;&lt;strong&gt;Optimization&lt;/strong&gt;&lt;p&gt;GEPA puede aprender de estos casos.&lt;/p&gt;&lt;div class=&quot;lab-case-dots&quot; id=&quot;optimization-dots&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+              &lt;div&gt;&lt;strong&gt;Holdout&lt;/strong&gt;&lt;p&gt;Comparación final de prompts.&lt;/p&gt;&lt;div class=&quot;lab-case-dots&quot; id=&quot;holdout-dots&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;lab-card lab-block&quot;&gt;
+            &lt;h3&gt;Contexto congelado&lt;/h3&gt;
+            &lt;pre class=&quot;lab-code&quot;&gt;Question
+   ↓ retrieve once
+Frozen context
+  ↙           ↘
+Baseline    Optimized
+
+Same evidence → fair prompt comparison&lt;/pre&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-grid-2&quot; style=&quot;margin-top:18px&quot;&gt;
+          &lt;div class=&quot;lab-metric-list&quot; id=&quot;metric-list&quot;&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-card lab-metric-detail&quot; id=&quot;metric-detail&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-callout&quot;&gt;&lt;p&gt;&lt;code&gt;retrieval_quality()&lt;/code&gt; comprueba metadata de manera determinista. &lt;code&gt;Context Relevance&lt;/code&gt; juzga relevancia y suficiencia semántica.&lt;/p&gt;&lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section class=&quot;lab-panel&quot; data-panel=&quot;optimization&quot; aria-labelledby=&quot;optimization-title&quot; hidden&gt;
+        &lt;div class=&quot;lab-panel-head&quot;&gt;
+          &lt;span class=&quot;lab-section-ref&quot;&gt;Notebook 2.1–3.7&lt;/span&gt;
+          &lt;h2 id=&quot;optimization-title&quot;&gt;GEPA, quality gates y configuración RAG&lt;/h2&gt;
+          &lt;p&gt;GEPA propone un prompt; los quality gates deciden si se aprueba. Después se comparan tres hipótesis completas de RAG.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-flowline&quot; aria-label=&quot;Ciclo de optimización GEPA&quot;&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;Seed prompt&lt;/strong&gt;&lt;span&gt;Punto de partida&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;Mutations&lt;/strong&gt;&lt;span&gt;Candidatos generados&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;Optimization cases&lt;/strong&gt;&lt;span&gt;Scoring iterativo&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;Pareto selection&lt;/strong&gt;&lt;span&gt;Balance entre métricas&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-flowstep is-active&quot;&gt;&lt;strong&gt;Holdout + gates&lt;/strong&gt;&lt;span&gt;Aprobar o rechazar&lt;/span&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-callout lab-warning&quot;&gt;&lt;p&gt;GEPA modifica el prompt, no el retriever. Los resultados de v3 aparecerán solamente después de ejecutar el notebook.&lt;/p&gt;&lt;/div&gt;
+        &lt;div class=&quot;lab-controls&quot; id=&quot;config-controls&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;lab-grid-2&quot;&gt;
+          &lt;div class=&quot;lab-card lab-block&quot;&gt;&lt;h3 id=&quot;config-title&quot;&gt;&lt;/h3&gt;&lt;p id=&quot;config-rationale&quot;&gt;&lt;/p&gt;&lt;table class=&quot;lab-config-table&quot; id=&quot;config-table&quot;&gt;&lt;/table&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-card lab-block&quot;&gt;&lt;h3&gt;Quality policy&lt;/h3&gt;&lt;table class=&quot;lab-config-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;th&gt;Weighted gain&lt;/th&gt;&lt;td&gt;≥ baseline + 0.01&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;th&gt;Correctness regression&lt;/th&gt;&lt;td&gt;≤ 0.02 tolerated&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;th&gt;Faithfulness regression&lt;/th&gt;&lt;td&gt;≤ 0.02 tolerated&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;th&gt;Success rate&lt;/th&gt;&lt;td&gt;No regression&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;th&gt;Errors&lt;/th&gt;&lt;td&gt;No additional errors&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;p style=&quot;margin-top:12px;color:var(--lab-muted)&quot;&gt;Estado actual: pendiente de ejecutar v3.&lt;/p&gt;&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section class=&quot;lab-panel&quot; data-panel=&quot;official&quot; aria-labelledby=&quot;official-title&quot; hidden&gt;
+        &lt;div class=&quot;lab-panel-head&quot;&gt;
+          &lt;span class=&quot;lab-section-ref&quot;&gt;Notebook 4.1–4.3&lt;/span&gt;
+          &lt;h2 id=&quot;official-title&quot;&gt;Cinco casos oficiales × cuatro pipelines&lt;/h2&gt;
+          &lt;p&gt;Explora el diseño de la evaluación final. Las respuestas y métricas permanecen pendientes hasta ejecutar v3.&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-grid-3&quot; style=&quot;margin-bottom:18px&quot;&gt;
+          &lt;div class=&quot;lab-card&quot;&gt;&lt;strong&gt;5&lt;/strong&gt;&lt;p&gt;preguntas oficiales&lt;/p&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-card&quot;&gt;&lt;strong&gt;20&lt;/strong&gt;&lt;p&gt;respuestas: 5 × 4 pipelines&lt;/p&gt;&lt;/div&gt;
+          &lt;div class=&quot;lab-card&quot;&gt;&lt;strong&gt;80&lt;/strong&gt;&lt;p&gt;evaluaciones: 20 × 4 métricas&lt;/p&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;lab-matrix-wrap&quot;&gt;&lt;table class=&quot;lab-matrix&quot; id=&quot;official-matrix&quot;&gt;&lt;/table&gt;&lt;/div&gt;
+        &lt;div class=&quot;lab-card&quot; id=&quot;official-detail&quot; style=&quot;margin-top:16px&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;lab-callout lab-warning&quot;&gt;&lt;p&gt;Answer Correctness no se calcula porque estos cinco casos no incluyen una respuesta humana de referencia.&lt;/p&gt;&lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section class=&quot;lab-check&quot; aria-labelledby=&quot;knowledge-check-title&quot;&gt;
+        &lt;h3 id=&quot;knowledge-check-title&quot;&gt;Comprobación rápida&lt;/h3&gt;
+        &lt;p id=&quot;check-question&quot;&gt;&lt;/p&gt;
+        &lt;div class=&quot;lab-check-options&quot; id=&quot;check-options&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;lab-feedback&quot; id=&quot;check-feedback&quot; aria-live=&quot;polite&quot;&gt;&lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;div class=&quot;lab-footer-nav&quot;&gt;
+        &lt;button class=&quot;lab-button&quot; id=&quot;previous-module&quot;&gt;← Anterior&lt;/button&gt;
+        &lt;button class=&quot;lab-button lab-button-secondary&quot; id=&quot;next-module&quot;&gt;Siguiente →&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/main&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    (() =&gt; {
+      const root = document.getElementById(&quot;rag-learning-lab&quot;);
+      if (!root) return;
+
+      const modules = [
+        { id: &quot;documents&quot;, section: &quot;1.1–1.2&quot;, short: &quot;Documents&quot; },
+        { id: &quot;chunking&quot;, section: &quot;1.2&quot;, short: &quot;Chunking&quot; },
+        { id: &quot;chroma&quot;, section: &quot;1.3&quot;, short: &quot;Chroma&quot; },
+        { id: &quot;retrieval&quot;, section: &quot;1.4&quot;, short: &quot;Retrieval&quot; },
+        { id: &quot;context&quot;, section: &quot;1.4&quot;, short: &quot;Context&quot; },
+        { id: &quot;evaluation&quot;, section: &quot;1.5–1.7&quot;, short: &quot;Evaluation&quot; },
+        { id: &quot;optimization&quot;, section: &quot;2–3&quot;, short: &quot;GEPA + tuning&quot; },
+        { id: &quot;official&quot;, section: &quot;4&quot;, short: &quot;Official tests&quot; }
+      ];
+
+      const sourceExamples = {
+        prices: {
+          label: &quot;Stock prices CSV&quot;,
+          raw: { price_summary: &quot;Date is 2025-04-28, ticker is AAPL, name is Apple Inc., close is 199.25&quot; },
+          document: {
+            page_content: &quot;Date is 2025-04-28, ticker is AAPL, name is Apple Inc., close is 199.25&quot;,
+            metadata: { dataset: &quot;stock_price_details&quot;, source_file: &quot;stock_price_details.csv&quot;, row_id: 42, ticker: &quot;AAPL&quot;, date: &quot;2025-04-28&quot;, name: &quot;Apple Inc.&quot; }
+          },
+          uses: [[&quot;Embedding&quot;, &quot;Full price summary&quot;], [&quot;Exact filters&quot;, &quot;dataset, ticker, date&quot;], [&quot;Traceability&quot;, &quot;source_file, row_id&quot;]]
+        },
+        news: {
+          label: &quot;Global news CSV&quot;,
+          raw: { title: &quot;Amazon expands AI infrastructure&quot;, published_at: &quot;2025-04-28&quot;, source: &quot;Reuters&quot;, description: &quot;New investment in AI capacity&quot;, content: &quot;Amazon announced additional data-center capacity...&quot; },
+          document: {
+            page_content: &quot;Title: Amazon expands AI infrastructure\nPublished at: 2025-04-28\nSource: Reuters\n\nDescription: New investment in AI capacity\n\nContent: Amazon announced additional data-center capacity...&quot;,
+            metadata: { dataset: &quot;global_news&quot;, source_file: &quot;global_news.csv&quot;, row_id: 15, title: &quot;Amazon expands AI infrastructure&quot;, source: &quot;Reuters&quot;, published_at: &quot;2025-04-28&quot; }
+          },
+          uses: [[&quot;Embedding&quot;, &quot;Title + description + content&quot;], [&quot;Exact filters&quot;, &quot;dataset&quot;], [&quot;Citation&quot;, &quot;title, source, published_at, row_id&quot;]]
+        },
+        filing: {
+          label: &quot;SEC filing PDF&quot;,
+          raw: { page: 12, extracted_text: &quot;Management evaluates disclosure controls and internal control over financial reporting...&quot; },
+          document: {
+            page_content: &quot;Management evaluates disclosure controls and internal control over financial reporting...&quot;,
+            metadata: { dataset: &quot;sec_filings&quot;, source_file: &quot;sec_filings_10q.pdf&quot;, document_type: &quot;10-Q&quot;, page: 12, chunk_id: 47 }
+          },
+          uses: [[&quot;Embedding&quot;, &quot;Chunk text&quot;], [&quot;Exact filters&quot;, &quot;dataset&quot;], [&quot;Traceability&quot;, &quot;source_file, page, chunk_id&quot;]]
+        }
+      };
+
+      const filingText = (`Management&#x27;s Discussion and Analysis explains changes in revenue, operating expenses, liquidity, and risk factors. The company evaluates disclosure controls and procedures and reports whether internal control over financial reporting remains effective. Material changes, market uncertainty, supply-chain exposure, foreign-exchange movements, and competitive pressure may affect future results. `).repeat(8);
+
+      const retrievalCases = [
+        {
+          id: &quot;price-date&quot;,
+          question: &quot;What was Apple&#x27;s stock price on 2025-04-28?&quot;,
+          datasets: [&quot;stock_price_details&quot;], tickers: [&quot;AAPL&quot;], dates: [&quot;2025-04-28&quot;], k: 5,
+          exactFilter: { &quot;$and&quot;: [{ dataset: { &quot;$eq&quot;: &quot;stock_price_details&quot; } }, { ticker: { &quot;$eq&quot;: &quot;AAPL&quot; } }, { date: { &quot;$eq&quot;: &quot;2025-04-28&quot; } }] },
+          fallbackFilter: { &quot;$and&quot;: [{ dataset: { &quot;$eq&quot;: &quot;stock_price_details&quot; } }, { ticker: { &quot;$eq&quot;: &quot;AAPL&quot; } }] },
+          results: [&quot;AAPL close 199.25 on 2025-04-28&quot;, &quot;AAPL daily range and volume&quot;, &quot;AAPL neighboring trading session&quot;],
+          fallbackResults: [&quot;AAPL close on 2025-04-25&quot;, &quot;AAPL close on 2025-04-29&quot;, &quot;AAPL recent trend summary&quot;]
+        },
+        {
+          id: &quot;news-price&quot;,
+          question: &quot;Does recent Amazon news sentiment agree with its stock performance?&quot;,
+          datasets: [&quot;stock_price_details&quot;, &quot;global_news&quot;], tickers: [&quot;AMZN&quot;], dates: [], k: 5,
+          exactFilter: { dataset: { &quot;$in&quot;: [&quot;stock_price_details&quot;, &quot;global_news&quot;] } },
+          results: [&quot;Amazon AI infrastructure announcement&quot;, &quot;AMZN recent price movement&quot;, &quot;Amazon market sentiment summary&quot;]
+        },
+        {
+          id: &quot;filing-risk&quot;,
+          question: &quot;What risks appear in Apple&#x27;s latest 10-Q filing?&quot;,
+          datasets: [&quot;sec_filings&quot;], tickers: [&quot;AAPL&quot;], dates: [], k: 5,
+          exactFilter: { dataset: { &quot;$eq&quot;: &quot;sec_filings&quot; } },
+          results: [&quot;10-Q risk factors chunk&quot;, &quot;Liquidity and market risk section&quot;, &quot;Internal control disclosure&quot;]
+        },
+        {
+          id: &quot;multi-company&quot;,
+          question: &quot;Out of Google, Amazon, and Apple, which is the best bet for AI?&quot;,
+          datasets: [&quot;global_news&quot;, &quot;stock_price_details&quot;, &quot;sec_filings&quot;], tickers: [&quot;AAPL&quot;, &quot;AMZN&quot;, &quot;GOOGL&quot;], dates: [], k: 7,
+          exactFilter: { dataset: { &quot;$in&quot;: [&quot;global_news&quot;, &quot;stock_price_details&quot;, &quot;sec_filings&quot;] } },
+          results: [&quot;Alphabet AI-related news&quot;, &quot;Amazon price and filing evidence&quot;, &quot;Apple AI news and financial risk&quot;]
+        },
+        {
+          id: &quot;ambiguous&quot;,
+          question: &quot;Tell me everything relevant about Apple.&quot;,
+          datasets: [&quot;global_news&quot;, &quot;stock_price_details&quot;, &quot;sec_filings&quot;], tickers: [&quot;AAPL&quot;], dates: [], k: 5,
+          exactFilter: { dataset: { &quot;$in&quot;: [&quot;global_news&quot;, &quot;stock_price_details&quot;, &quot;sec_filings&quot;] } },
+          results: [&quot;Apple recent news&quot;, &quot;AAPL price record&quot;, &quot;Apple filing excerpt&quot;]
+        }
+      ];
+
+      const metrics = [
+        { name: &quot;Context Relevance&quot;, owner: &quot;Retriever&quot;, question: &quot;¿El contexto recuperado es relevante y suficiente?&quot;, fields: [&quot;input&quot;, &quot;retrieval_context&quot;], reference: false, failure: &quot;El dataset correcto aparece, pero los chunks no contienen evidencia suficiente.&quot; },
+        { name: &quot;Answer Correctness&quot;, owner: &quot;Generator&quot;, question: &quot;¿La respuesta coincide con la respuesta esperada?&quot;, fields: [&quot;input&quot;, &quot;actual_output&quot;, &quot;expected_output&quot;], reference: true, failure: &quot;La respuesta es grounded, pero reporta una cifra distinta de la referencia.&quot; },
+        { name: &quot;Faithfulness / Groundedness&quot;, owner: &quot;Generator&quot;, question: &quot;¿Cada afirmación está respaldada por el contexto?&quot;, fields: [&quot;actual_output&quot;, &quot;retrieval_context&quot;], reference: false, failure: &quot;El modelo agrega una explicación que no aparece en las fuentes.&quot; },
+        { name: &quot;Answer Relevance&quot;, owner: &quot;Generator&quot;, question: &quot;¿La respuesta contesta directamente la pregunta?&quot;, fields: [&quot;input&quot;, &quot;actual_output&quot;], reference: false, failure: &quot;La respuesta usa evidencia correcta, pero se desvía hacia información no solicitada.&quot; },
+        { name: &quot;Broker Actionability&quot;, owner: &quot;Generator&quot;, question: &quot;¿La respuesta presenta señales, riesgos e implicaciones útiles?&quot;, fields: [&quot;input&quot;, &quot;actual_output&quot;, &quot;retrieval_context&quot;], reference: false, failure: &quot;La respuesta enumera hechos sin explicar su implicación para una conversación con el cliente.&quot; }
+      ];
+
+      const configs = {
+        precision: { name: &quot;Config_1_Precision_Focused&quot;, rationale: &quot;Prueba si chunks menores y menos documentos reducen ruido en preguntas específicas.&quot;, values: { &quot;Chunk size&quot;: 700, &quot;Overlap&quot;: 100, &quot;Top-k&quot;: 4, &quot;Search&quot;: &quot;similarity&quot;, &quot;Temperature&quot;: 0.0, &quot;Top-p&quot;: 1.0, &quot;Max tokens&quot;: 450 } },
+        balanced: { name: &quot;Config_2_Balanced&quot;, rationale: &quot;Referencia equilibrada entre recall, ruido, contexto y longitud de respuesta.&quot;, values: { &quot;Chunk size&quot;: 1000, &quot;Overlap&quot;: 200, &quot;Top-k&quot;: 5, &quot;Search&quot;: &quot;similarity&quot;, &quot;Temperature&quot;: 0.0, &quot;Top-p&quot;: 1.0, &quot;Max tokens&quot;: 500 } },
+        context: { name: &quot;Config_3_Context_Heavy&quot;, rationale: &quot;Prueba evidencia más amplia y diversa para preguntas comparativas o de varias partes.&quot;, values: { &quot;Chunk size&quot;: 1200, &quot;Overlap&quot;: 250, &quot;Top-k&quot;: 7, &quot;Search&quot;: &quot;MMR&quot;, &quot;Temperature&quot;: 0.1, &quot;Top-p&quot;: 0.9, &quot;Max tokens&quot;: 650 } }
+      };
+
+      const officialCases = [
+        { id: 1, short: &quot;10-Q comparison&quot;, question: &quot;Compare total revenue and net income reported by Apple, Amazon, and Alphabet. Which grew fastest year-over-year?&quot;, datasets: [&quot;sec_filings&quot;], entities: [&quot;Apple&quot;, &quot;Amazon&quot;, &quot;Alphabet&quot;] },
+        { id: 2, short: &quot;Amazon signal&quot;, question: &quot;Based on this week&#x27;s Amazon news sentiment, is the signal bullish or bearish, and does price support it?&quot;, datasets: [&quot;global_news&quot;, &quot;stock_price_details&quot;], entities: [&quot;Amazon&quot;] },
+        { id: 3, short: &quot;Apple rumor + risk&quot;, question: &quot;Should I invest in Apple now? Is the Tim Cook rumor a red flag, and what do price, financials, and risks show?&quot;, datasets: [&quot;global_news&quot;, &quot;stock_price_details&quot;, &quot;sec_filings&quot;], entities: [&quot;Apple&quot;, &quot;Tim Cook&quot;] },
+        { id: 4, short: &quot;Bitcoin trend&quot;, question: &quot;Is now a good time to buy Bitcoin? What is the recent trend and what is driving the rally?&quot;, datasets: [&quot;global_news&quot;, &quot;stock_price_details&quot;], entities: [&quot;Bitcoin&quot;] },
+        { id: 5, short: &quot;AI comparison&quot;, question: &quot;Out of Google, Amazon, and Apple, which looks strongest for AI based on performance, filings, and news?&quot;, datasets: [&quot;global_news&quot;, &quot;stock_price_details&quot;, &quot;sec_filings&quot;], entities: [&quot;Alphabet&quot;, &quot;Amazon&quot;, &quot;Apple&quot;] }
+      ];
+
+      const pipelines = [&quot;Baseline&quot;, configs.precision.name, configs.balanced.name, configs.context.name];
+
+      const checks = {
+        documents: { question: &quot;¿Qué parte de Document se usa para filtrar exactamente por ticker?&quot;, options: [&quot;page_content&quot;, &quot;metadata&quot;, &quot;embedding&quot;], correct: 1, feedback: &quot;El ticker vive en metadata; page_content se usa para similitud semántica.&quot; },
+        chunking: { question: &quot;¿Qué efecto directo tiene aumentar el overlap?&quot;, options: [&quot;Más continuidad y más duplicación&quot;, &quot;Menos chunks siempre&quot;, &quot;Convierte caracteres en tokens&quot;], correct: 0, feedback: &quot;El overlap conserva texto entre fronteras, pero repite contenido.&quot; },
+        chroma: { question: &quot;¿Por qué el ID determinista ayuda al notebook?&quot;, options: [&quot;Hace el embedding más grande&quot;, &quot;Evita identidades aleatorias al reejecutar&quot;, &quot;Reemplaza metadata&quot;], correct: 1, feedback: &quot;El mismo contenido y metadata producen la misma identidad reproducible.&quot; },
+        retrieval: { question: &quot;Después del filtro de metadata, ¿qué decide el ranking final?&quot;, options: [&quot;El número de fila&quot;, &quot;La similitud semántica&quot;, &quot;El nombre del archivo&quot;], correct: 1, feedback: &quot;Metadata limita candidatos; embeddings ordenan el subconjunto semánticamente.&quot; },
+        context: { question: &quot;¿Qué hace format_retrieved_context()?&quot;, options: [&quot;Recupera documentos&quot;, &quot;Crea embeddings&quot;, &quot;Prepara evidencia numerada para el prompt&quot;], correct: 2, feedback: &quot;La función limpia, numera y etiqueta documentos ya recuperados.&quot; },
+        evaluation: { question: &quot;¿Qué debe permanecer constante para comparar dos prompts justamente?&quot;, options: [&quot;El contexto recuperado&quot;, &quot;El texto del prompt&quot;, &quot;La respuesta generada&quot;], correct: 0, feedback: &quot;El contexto se congela para aislar el prompt como variable experimental.&quot; },
+        optimization: { question: &quot;¿Qué componente modifica GEPA en este proyecto?&quot;, options: [&quot;El prompt&quot;, &quot;El embedding model&quot;, &quot;La raw data&quot;], correct: 0, feedback: &quot;GEPA propone cambios al prompt; el tuning de retrieval ocurre después.&quot; },
+        official: { question: &quot;¿Por qué no se calcula Answer Correctness en los cinco casos oficiales?&quot;, options: [&quot;Porque son demasiados&quot;, &quot;Porque no tienen expected_output humano&quot;, &quot;Porque Chroma no devuelve scores&quot;], correct: 1, feedback: &quot;Correctness necesita una respuesta de referencia para comparar.&quot; }
+      };
+
+      let activeModule = 0;
+      let completed = new Set();
+      try {
+        const saved = JSON.parse(localStorage.getItem(&quot;rag-learning-lab-progress&quot;) || &quot;[]&quot;);
+        completed = new Set(saved.filter(id =&gt; modules.some(module =&gt; module.id === id)));
+      } catch (_) {}
+
+      const escapeHTML = value =&gt; String(value).replace(/[&amp;&lt;&gt;&#x27;&quot;]/g, char =&gt; ({ &quot;&amp;&quot;: &quot;&amp;amp;&quot;, &quot;&lt;&quot;: &quot;&amp;lt;&quot;, &quot;&gt;&quot;: &quot;&amp;gt;&quot;, &quot;&#x27;&quot;: &quot;&amp;#39;&quot;, &#x27;&quot;&#x27;: &quot;&amp;quot;&quot; }[char]));
+      const pretty = value =&gt; JSON.stringify(value, null, 2);
+
+      function renderNavigation() {
+        const nav = root.querySelector(&quot;#lab-module-nav&quot;);
+        nav.innerHTML = modules.map((module, index) =&gt; `
+          &lt;button class=&quot;lab-stage ${completed.has(module.id) ? &quot;is-complete&quot; : &quot;&quot;}&quot; data-module-index=&quot;${index}&quot; aria-pressed=&quot;${index === activeModule}&quot;&gt;
+            &lt;span&gt;${escapeHTML(module.section)}&lt;/span&gt;&lt;strong&gt;${escapeHTML(module.short)}&lt;/strong&gt;
+          &lt;/button&gt;`).join(&quot;&quot;);
+        nav.querySelectorAll(&quot;[data-module-index]&quot;).forEach(button =&gt; button.addEventListener(&quot;click&quot;, () =&gt; showModule(Number(button.dataset.moduleIndex))));
+      }
+
+      function updateProgress() {
+        const percent = completed.size / modules.length * 100;
+        root.querySelector(&quot;#lab-progress-fill&quot;).style.width = `${percent}%`;
+        root.querySelector(&quot;#lab-progress-label&quot;).textContent = `${completed.size} de ${modules.length} conceptos comprobados`;
+      }
+
+      function showModule(index) {
+        activeModule = Math.max(0, Math.min(modules.length - 1, index));
+        const id = modules[activeModule].id;
+        root.querySelectorAll(&quot;[data-panel]&quot;).forEach(panel =&gt; { panel.hidden = panel.dataset.panel !== id; });
+        renderNavigation();
+        renderCheck();
+        root.querySelector(&quot;#previous-module&quot;).disabled = activeModule === 0;
+        root.querySelector(&quot;#next-module&quot;).textContent = activeModule === modules.length - 1 ? &quot;Volver al inicio ↺&quot; : &quot;Siguiente →&quot;;
+        root.querySelector(`[data-panel=&quot;${id}&quot;]`).scrollIntoView({ behavior: &quot;smooth&quot;, block: &quot;start&quot; });
+      }
+
+      function renderCheck() {
+        const id = modules[activeModule].id;
+        const check = checks[id];
+        root.querySelector(&quot;#check-question&quot;).textContent = check.question;
+        const options = root.querySelector(&quot;#check-options&quot;);
+        options.innerHTML = check.options.map((option, index) =&gt; `&lt;button class=&quot;lab-button&quot; data-check-option=&quot;${index}&quot;&gt;${escapeHTML(option)}&lt;/button&gt;`).join(&quot;&quot;);
+        const feedback = root.querySelector(&quot;#check-feedback&quot;);
+        feedback.textContent = completed.has(id) ? `✓ ${check.feedback}` : &quot;&quot;;
+        feedback.className = completed.has(id) ? &quot;lab-feedback is-correct&quot; : &quot;lab-feedback&quot;;
+        options.querySelectorAll(&quot;[data-check-option]&quot;).forEach(button =&gt; button.addEventListener(&quot;click&quot;, () =&gt; {
+          const selected = Number(button.dataset.checkOption);
+          if (selected === check.correct) {
+            completed.add(id);
+            feedback.textContent = `✓ ${check.feedback}`;
+            feedback.className = &quot;lab-feedback is-correct&quot;;
+            try { localStorage.setItem(&quot;rag-learning-lab-progress&quot;, JSON.stringify([...completed])); } catch (_) {}
+            updateProgress();
+            renderNavigation();
+          } else {
+            feedback.textContent = &quot;Revisa la transformación mostrada en este módulo e inténtalo otra vez.&quot;;
+            feedback.className = &quot;lab-feedback is-wrong&quot;;
+          }
+        }));
+      }
+
+      function renderSource(key) {
+        const item = sourceExamples[key];
+        root.querySelectorAll(&quot;[data-source-key]&quot;).forEach(button =&gt; button.setAttribute(&quot;aria-pressed&quot;, button.dataset.sourceKey === key));
+        root.querySelector(&quot;#raw-record&quot;).textContent = pretty(item.raw);
+        root.querySelector(&quot;#document-record&quot;).textContent = `Document(\n  page_content=${JSON.stringify(item.document.page_content)},\n  metadata=${pretty(item.document.metadata).replaceAll(&quot;\n&quot;, &quot;\n  &quot;)}\n)`;
+        root.querySelector(&quot;#document-uses&quot;).innerHTML = item.uses.map(([label, value]) =&gt; `&lt;p&gt;&lt;strong&gt;${escapeHTML(label)}:&lt;/strong&gt;&lt;br&gt;${escapeHTML(value)}&lt;/p&gt;`).join(&quot;&quot;);
+      }
+
+      const sourceControls = root.querySelector(&quot;#source-controls&quot;);
+      sourceControls.innerHTML = Object.entries(sourceExamples).map(([key, value], index) =&gt; `&lt;button class=&quot;lab-button&quot; data-source-key=&quot;${key}&quot; aria-pressed=&quot;${index === 0}&quot;&gt;${escapeHTML(value.label)}&lt;/button&gt;`).join(&quot;&quot;);
+      sourceControls.querySelectorAll(&quot;[data-source-key]&quot;).forEach(button =&gt; button.addEventListener(&quot;click&quot;, () =&gt; renderSource(button.dataset.sourceKey)));
+      renderSource(&quot;prices&quot;);
+
+      function renderChunks() {
+        const size = Number(root.querySelector(&quot;#chunk-size&quot;).value);
+        const overlap = Math.min(Number(root.querySelector(&quot;#chunk-overlap&quot;).value), size - 1);
+        root.querySelector(&quot;#chunk-size-value&quot;).textContent = size;
+        root.querySelector(&quot;#chunk-overlap-value&quot;).textContent = overlap;
+        const chunks = [];
+        let start = 0;
+        while (start &lt; filingText.length) {
+          const end = Math.min(start + size, filingText.length);
+          chunks.push({ start, end, text: filingText.slice(start, end) });
+          if (end === filingText.length) break;
+          start = end - overlap;
+        }
+        root.querySelector(&quot;#chunk-count&quot;).textContent = chunks.length;
+        root.querySelector(&quot;#chunk-shared&quot;).textContent = overlap;
+        root.querySelector(&quot;#chunk-list&quot;).innerHTML = chunks.map((chunk, index) =&gt; `&lt;div class=&quot;lab-chunk&quot;&gt;&lt;div class=&quot;lab-chunk-head&quot;&gt;&lt;strong&gt;Chunk ${index}&lt;/strong&gt;&lt;span&gt;chars ${chunk.start}–${chunk.end} · page 12&lt;/span&gt;&lt;/div&gt;&lt;div&gt;${escapeHTML(chunk.text.slice(0, 190))}${chunk.text.length &gt; 190 ? &quot;…&quot; : &quot;&quot;}&lt;/div&gt;&lt;/div&gt;`).join(&quot;&quot;);
+      }
+      root.querySelector(&quot;#chunk-size&quot;).addEventListener(&quot;input&quot;, renderChunks);
+      root.querySelector(&quot;#chunk-overlap&quot;).addEventListener(&quot;input&quot;, renderChunks);
+      renderChunks();
+
+      const embeddingControls = root.querySelector(&quot;#embedding-controls&quot;);
+      embeddingControls.innerHTML = Object.entries(sourceExamples).map(([key, value], index) =&gt; `&lt;button class=&quot;lab-button&quot; data-embedding-key=&quot;${key}&quot; aria-pressed=&quot;${index === 0}&quot;&gt;${escapeHTML(value.label)}&lt;/button&gt;`).join(&quot;&quot;);
+      function renderEmbedding(key) {
+        const item = sourceExamples[key];
+        embeddingControls.querySelectorAll(&quot;[data-embedding-key]&quot;).forEach(button =&gt; button.setAttribute(&quot;aria-pressed&quot;, button.dataset.embeddingKey === key));
+        root.querySelector(&quot;#embed-doc-label&quot;).textContent = item.label;
+        root.querySelector(&quot;#embed-content&quot;).textContent = item.document.page_content;
+        root.querySelector(&quot;#embed-metadata&quot;).textContent = pretty(item.document.metadata);
+      }
+      embeddingControls.querySelectorAll(&quot;[data-embedding-key]&quot;).forEach(button =&gt; button.addEventListener(&quot;click&quot;, () =&gt; renderEmbedding(button.dataset.embeddingKey)));
+      renderEmbedding(&quot;prices&quot;);
+
+      const retrievalSelect = root.querySelector(&quot;#retrieval-case&quot;);
+      retrievalSelect.innerHTML = retrievalCases.map((item, index) =&gt; `&lt;option value=&quot;${index}&quot;&gt;${escapeHTML(item.question)}&lt;/option&gt;`).join(&quot;&quot;);
+      function renderRetrieval() {
+        const item = retrievalCases[Number(retrievalSelect.value) || 0];
+        const fallbackAvailable = item.id === &quot;price-date&quot;;
+        const fallback = fallbackAvailable &amp;&amp; root.querySelector(&quot;#fallback-toggle&quot;).checked;
+        root.querySelector(&quot;#fallback-wrap&quot;).hidden = !fallbackAvailable;
+        root.querySelector(&quot;#route-datasets&quot;).textContent = item.datasets.join(&quot;, &quot;);
+        root.querySelector(&quot;#route-constraints&quot;).textContent = `tickers=${item.tickers.join(&quot;, &quot;) || &quot;none&quot;}; dates=${item.dates.join(&quot;, &quot;) || &quot;none&quot;}`;
+        root.querySelector(&quot;#route-topk&quot;).textContent = `Top-${item.k}`;
+        root.querySelector(&quot;#route-filter&quot;).textContent = pretty(fallback ? item.fallbackFilter : item.exactFilter);
+        root.querySelector(&quot;#route-tags&quot;).innerHTML = [
+          ...item.datasets.map(value =&gt; `&lt;span class=&quot;lab-label is-exact&quot;&gt;dataset: ${escapeHTML(value)}&lt;/span&gt;`),
+          ...item.tickers.map(value =&gt; `&lt;span class=&quot;lab-label is-exact&quot;&gt;ticker: ${escapeHTML(value)}&lt;/span&gt;`),
+          ...(fallback ? [] : item.dates.map(value =&gt; `&lt;span class=&quot;lab-label is-exact&quot;&gt;date: ${escapeHTML(value)}&lt;/span&gt;`)),
+          `&lt;span class=&quot;lab-label is-semantic&quot;&gt;semantic ranking&lt;/span&gt;`
+        ].join(&quot;&quot;);
+        const results = fallback ? item.fallbackResults : item.results;
+        root.querySelector(&quot;#route-results&quot;).innerHTML = results.map((result, index) =&gt; `&lt;div class=&quot;lab-result&quot;&gt;&lt;strong&gt;${index + 1}. ${escapeHTML(result)}&lt;/strong&gt;&lt;br&gt;&lt;small&gt;${fallback ? &quot;Related evidence after relaxing date&quot; : &quot;Passed metadata filter, then ranked semantically&quot;}&lt;/small&gt;&lt;/div&gt;`).join(&quot;&quot;);
+        root.querySelector(&quot;#fallback-note&quot;).className = fallback ? &quot;lab-callout lab-warning&quot; : &quot;lab-callout&quot;;
+        root.querySelector(&quot;#fallback-note&quot;).innerHTML = fallback
+          ? &quot;&lt;p&gt;&lt;strong&gt;Fallback active:&lt;/strong&gt; se conserva AAPL, se elimina la fecha exacta. La respuesta debe reconocer esta limitación.&lt;/p&gt;&quot;
+          : &quot;&lt;p&gt;&lt;strong&gt;Metadata decide quién puede competir.&lt;/strong&gt; Los embeddings deciden cuáles documentos ganan.&lt;/p&gt;&quot;;
+      }
+      retrievalSelect.addEventListener(&quot;change&quot;, renderRetrieval);
+      root.querySelector(&quot;#fallback-toggle&quot;).addEventListener(&quot;change&quot;, renderRetrieval);
+      renderRetrieval();
+
+      const contextViews = {
+        documents: `&lt;div class=&quot;lab-evidence-list&quot;&gt;&lt;div class=&quot;lab-result&quot;&gt;&lt;strong&gt;Document 1&lt;/strong&gt;&lt;br&gt;AAPL closed at $199.25 on 2025-04-28.&lt;br&gt;&lt;small&gt;stock_price_details.csv · row 42&lt;/small&gt;&lt;/div&gt;&lt;div class=&quot;lab-result&quot;&gt;&lt;strong&gt;Document 2&lt;/strong&gt;&lt;br&gt;AAPL trading volume increased during the session.&lt;br&gt;&lt;small&gt;stock_price_details.csv · row 43&lt;/small&gt;&lt;/div&gt;&lt;/div&gt;`,
+        formatted: `&lt;pre class=&quot;lab-code&quot;&gt;Corpus snapshot date: 2025-04-30
+
+[Source 1] AAPL closed at $199.25 on 2025-04-28.
+Metadata: stock_price_details.csv | row 42
+
+[Source 2] AAPL trading volume increased during the session.
+Metadata: stock_price_details.csv | row 43&lt;/pre&gt;`,
+        prompt: `&lt;pre class=&quot;lab-code&quot;&gt;System: Use only the retrieved context. If evidence is insufficient, say what is missing.
+
+Question:
+What was Apple&#x27;s stock price on 2025-04-28?
+
+Retrieved context:
+[Source 1] AAPL closed at $199.25...
+
+Answer with a direct response and a short Sources section.&lt;/pre&gt;`,
+        answer: `&lt;div class=&quot;lab-callout&quot;&gt;&lt;p&gt;&lt;strong&gt;Answer:&lt;/strong&gt; Apple closed at $199.25 on April 28, 2025.&lt;br&gt;&lt;br&gt;&lt;strong&gt;Sources:&lt;/strong&gt; [Source 1]&lt;/p&gt;&lt;/div&gt;&lt;p style=&quot;color:var(--lab-muted)&quot;&gt;La respuesta es un ejemplo educativo, no un resultado de ejecución de v3.&lt;/p&gt;`
+      };
+      function renderContextTab(key) {
+        root.querySelectorAll(&quot;[data-context-tab]&quot;).forEach(button =&gt; { const active = button.dataset.contextTab === key; button.classList.toggle(&quot;is-active&quot;, active); button.setAttribute(&quot;aria-pressed&quot;, active); });
+        root.querySelector(&quot;#context-content&quot;).innerHTML = contextViews[key];
+      }
+      root.querySelectorAll(&quot;[data-context-tab]&quot;).forEach(button =&gt; button.addEventListener(&quot;click&quot;, () =&gt; renderContextTab(button.dataset.contextTab)));
+      renderContextTab(&quot;documents&quot;);
+
+      root.querySelector(&quot;#optimization-dots&quot;).innerHTML = Array.from({ length: 12 }, (_, index) =&gt; `&lt;span class=&quot;lab-dot&quot;&gt;${index + 1}&lt;/span&gt;`).join(&quot;&quot;);
+      root.querySelector(&quot;#holdout-dots&quot;).innerHTML = Array.from({ length: 8 }, (_, index) =&gt; `&lt;span class=&quot;lab-dot holdout&quot;&gt;${index + 13}&lt;/span&gt;`).join(&quot;&quot;);
+      const metricList = root.querySelector(&quot;#metric-list&quot;);
+      metricList.innerHTML = metrics.map((metric, index) =&gt; `&lt;button class=&quot;lab-button lab-metric-button ${index === 0 ? &quot;is-active&quot; : &quot;&quot;}&quot; data-metric-index=&quot;${index}&quot;&gt;${escapeHTML(metric.name)}&lt;span&gt;${escapeHTML(metric.owner)}&lt;/span&gt;&lt;/button&gt;`).join(&quot;&quot;);
+      function renderMetric(index) {
+        const metric = metrics[index];
+        metricList.querySelectorAll(&quot;[data-metric-index]&quot;).forEach(button =&gt; button.classList.toggle(&quot;is-active&quot;, Number(button.dataset.metricIndex) === index));
+        root.querySelector(&quot;#metric-detail&quot;).innerHTML = `&lt;h3&gt;${escapeHTML(metric.name)}&lt;/h3&gt;&lt;p&gt;&lt;strong&gt;Pregunta:&lt;/strong&gt; ${escapeHTML(metric.question)}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Campos:&lt;/strong&gt;&lt;br&gt;${metric.fields.map(field =&gt; `&lt;span class=&quot;lab-label&quot;&gt;${escapeHTML(field)}&lt;/span&gt;`).join(&quot;&quot;)}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Necesita expected_output:&lt;/strong&gt; ${metric.reference ? &quot;Sí&quot; : &quot;No&quot;}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Ejemplo de fallo:&lt;/strong&gt;&lt;br&gt;${escapeHTML(metric.failure)}&lt;/p&gt;`;
+      }
+      metricList.querySelectorAll(&quot;[data-metric-index]&quot;).forEach(button =&gt; button.addEventListener(&quot;click&quot;, () =&gt; renderMetric(Number(button.dataset.metricIndex))));
+      renderMetric(0);
+
+      const configControls = root.querySelector(&quot;#config-controls&quot;);
+      configControls.innerHTML = Object.entries(configs).map(([key, config], index) =&gt; `&lt;button class=&quot;lab-button&quot; data-config-key=&quot;${key}&quot; aria-pressed=&quot;${index === 0}&quot;&gt;${escapeHTML(config.name)}&lt;/button&gt;`).join(&quot;&quot;);
+      function renderConfig(key) {
+        const config = configs[key];
+        configControls.querySelectorAll(&quot;[data-config-key]&quot;).forEach(button =&gt; button.setAttribute(&quot;aria-pressed&quot;, button.dataset.configKey === key));
+        root.querySelector(&quot;#config-title&quot;).textContent = config.name;
+        root.querySelector(&quot;#config-rationale&quot;).textContent = config.rationale;
+        root.querySelector(&quot;#config-table&quot;).innerHTML = `&lt;tbody&gt;${Object.entries(config.values).map(([label, value]) =&gt; `&lt;tr&gt;&lt;th&gt;${escapeHTML(label)}&lt;/th&gt;&lt;td&gt;${escapeHTML(value)}&lt;/td&gt;&lt;/tr&gt;`).join(&quot;&quot;)}&lt;/tbody&gt;`;
+      }
+      configControls.querySelectorAll(&quot;[data-config-key]&quot;).forEach(button =&gt; button.addEventListener(&quot;click&quot;, () =&gt; renderConfig(button.dataset.configKey)));
+      renderConfig(&quot;precision&quot;);
+
+      const matrix = root.querySelector(&quot;#official-matrix&quot;);
+      matrix.innerHTML = `&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Pipeline&lt;/th&gt;${officialCases.map(item =&gt; `&lt;th&gt;Case ${item.id}&lt;br&gt;${escapeHTML(item.short)}&lt;/th&gt;`).join(&quot;&quot;)}&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${pipelines.map((pipeline, pipelineIndex) =&gt; `&lt;tr&gt;&lt;td&gt;${escapeHTML(pipeline)}&lt;/td&gt;${officialCases.map((item, caseIndex) =&gt; `&lt;td&gt;&lt;button data-pipeline-index=&quot;${pipelineIndex}&quot; data-case-index=&quot;${caseIndex}&quot; aria-pressed=&quot;${pipelineIndex === 0 &amp;&amp; caseIndex === 0}&quot;&gt;Pending&lt;/button&gt;&lt;/td&gt;`).join(&quot;&quot;)}&lt;/tr&gt;`).join(&quot;&quot;)}&lt;/tbody&gt;`;
+      function renderOfficial(pipelineIndex, caseIndex) {
+        const pipeline = pipelines[pipelineIndex];
+        const item = officialCases[caseIndex];
+        matrix.querySelectorAll(&quot;button&quot;).forEach(button =&gt; button.setAttribute(&quot;aria-pressed&quot;, Number(button.dataset.pipelineIndex) === pipelineIndex &amp;&amp; Number(button.dataset.caseIndex) === caseIndex));
+        root.querySelector(&quot;#official-detail&quot;).innerHTML = `&lt;h3&gt;Case ${item.id} · ${escapeHTML(pipeline)}&lt;/h3&gt;&lt;p&gt;${escapeHTML(item.question)}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Expected datasets:&lt;/strong&gt;&lt;br&gt;${item.datasets.map(value =&gt; `&lt;span class=&quot;lab-label&quot;&gt;${escapeHTML(value)}&lt;/span&gt;`).join(&quot;&quot;)}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Required entities:&lt;/strong&gt;&lt;br&gt;${item.entities.map(value =&gt; `&lt;span class=&quot;lab-label&quot;&gt;${escapeHTML(value)}&lt;/span&gt;`).join(&quot;&quot;)}&lt;/p&gt;&lt;p&gt;&lt;strong&gt;Execution status:&lt;/strong&gt; Pending notebook v3 execution.&lt;/p&gt;`;
+      }
+      matrix.querySelectorAll(&quot;button&quot;).forEach(button =&gt; button.addEventListener(&quot;click&quot;, () =&gt; renderOfficial(Number(button.dataset.pipelineIndex), Number(button.dataset.caseIndex))));
+      renderOfficial(0, 0);
+
+      root.querySelector(&quot;#previous-module&quot;).addEventListener(&quot;click&quot;, () =&gt; showModule(activeModule - 1));
+      root.querySelector(&quot;#next-module&quot;).addEventListener(&quot;click&quot;, () =&gt; showModule(activeModule === modules.length - 1 ? 0 : activeModule + 1));
+
+      updateProgress();
+      showModule(0);
+    })();
+  &lt;/script&gt;
+&lt;/div&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handleLeave = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>
